@@ -4,21 +4,31 @@ import { AppService } from './app.service';
 import { SearchModule } from './search/search.module';
 import { AnalysisModule } from './analysis/analysis.module';
 import { ReportsModule } from './reports/reports.module';
-import { LogsModule } from './logs/logs.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { AuthModule } from './auth/auth.module';
+import { AuditModule } from './audit/audit.module';
+import { UserModule } from './users/users.module';
+import { ConfigModule} from '@nestjs/config';
 
 @Module({
-  imports: [SearchModule, AnalysisModule, ReportsModule, LogsModule,
-      TypeOrmModule.forRoot({
-      type: 'mysql',          // ou postgres
-      host: 'localhost',
-      port: 3306,
-      username: 'amal',
-      password: 'root',
-      database: 'firewall_logs_db',
-      autoLoadEntities: true,
-      synchronize: false,
+  imports: [ 
+    ConfigModule.forRoot({ isGlobal: true }), // ✅ Loads .env variables
+    TypeOrmModule.forRoot({ // ✅ Configure database connection here
+      type: 'mysql',
+      host: process.env.MYSQL_HOST,
+      port: parseInt(process.env.MYSQL_PORT) || 3306,
+      username: process.env.MYSQL_USER,
+      password: process.env.MYSQL_PASSWORD,
+      database: process.env.MYSQL_DB,
+      entities: [__dirname + '/**/*.entity{.ts,.js}'],
+      synchronize: process.env.NODE_ENV !== 'production', // Be careful in prod!
     }),
+    AuthModule,
+    UserModule,
+    AuditModule,
+    SearchModule,
+    AnalysisModule,
+    ReportsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
