@@ -1,15 +1,14 @@
-// src/common/database/timestamp.entity.ts
 import { CreateDateColumn, UpdateDateColumn } from 'typeorm';
 
 export abstract class TimestampEntity {
-  @CreateDateColumn({ 
+  @CreateDateColumn({
     name: 'created_at',
     type: 'timestamp',
     default: () => 'CURRENT_TIMESTAMP',
   })
   createdAt: Date;
 
-  @UpdateDateColumn({ 
+  @UpdateDateColumn({
     name: 'updated_at',
     type: 'timestamp',
     default: () => 'CURRENT_TIMESTAMP',

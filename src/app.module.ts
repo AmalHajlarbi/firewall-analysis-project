@@ -4,6 +4,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UsersModule } from './users/users.module';
 import { User } from './users/entities/user.entity';
+import { RolesModule } from './roles/roles.module';
 import configuration from './config/configuration';
 
 @Module({
@@ -40,6 +41,8 @@ import configuration from './config/configuration';
     
     // Feature Modules
     UsersModule,
+    
+    RolesModule,
   ],
 })
 export class AppModule {}
