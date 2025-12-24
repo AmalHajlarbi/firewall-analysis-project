@@ -1,26 +1,45 @@
+// src/app.module.ts
 import { Module } from '@nestjs/common';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
-import { SearchModule } from './search/search.module';
-import { AnalysisModule } from './analysis/analysis.module';
-import { ReportsModule } from './reports/reports.module';
-import { LogsModule } from './logs/logs.module';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { UsersModule } from './users/users.module';
+import { User } from './users/entities/user.entity';
+import configuration from './config/configuration';
 
 @Module({
-  imports: [SearchModule, AnalysisModule, ReportsModule, LogsModule,
-      TypeOrmModule.forRoot({
-      type: 'mysql',          // ou postgres
-      host: 'localhost',
-      port: 3306,
-      username: 'amal',
-      password: 'root',
-      database: 'firewall_logs_db',
-      autoLoadEntities: true,
-      synchronize: false,
+  imports: [
+    // Configuration Module (Loads .env files)
+    ConfigModule.forRoot({
+      isGlobal: true, // Makes ConfigService available everywhere
+      load: [configuration], // Load our configuration
+      envFilePath: `.env.${process.env.NODE_ENV || 'development'}`, // Load specific .env file
     }),
+    
+    // Database Module (Async configuration)
+    TypeOrmModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => ({
+        type: 'mysql',
+        host: configService.get('database.host'),
+        port: configService.get('database.port'),
+        username: configService.get('database.username'),
+        password: configService.get('database.password'),
+        database: configService.get('database.database'),
+        entities: [__dirname + '/**/*.entity{.ts,.js}'], // Auto-load all entities
+        synchronize: configService.get('database.synchronize'),
+        logging: configService.get('database.logging'),
+        charset: 'utf8mb4',
+        timezone: 'Z', // UTC timezone
+        // Connection pool settings
+        extra: {
+          connectionLimit: 10,
+        },
+      }),
+    }),
+    
+    // Feature Modules
+    UsersModule,
   ],
-  controllers: [AppController],
-  providers: [AppService],
 })
 export class AppModule {}
