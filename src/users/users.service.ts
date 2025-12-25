@@ -6,7 +6,7 @@ import { User } from './entities/user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UpdateRoleDto } from './dto/update-role.dto';
-import { ChangePasswordDto } from './dto/change-password.dto';
+import {ChangeOwnPasswordDto, AdminChangePasswordDto} from './dto/change-password.dto';
 import { UserRole } from 'src/common/enums/role-permission.enum';
 
 @Injectable()
@@ -36,27 +36,36 @@ async findAll(
 
   const lastPage = Math.ceil(total / limit);
 
-  if (page > lastPage && total > 0) {
-    return { users: [], total, page, lastPage };
-  }
+  const safePage = page > lastPage ? lastPage : page;
 
   const users = await this.usersRepository.find({
     where: { deletedAt: IsNull() },
-    skip: (page - 1) * limit,
+    skip: (safePage - 1) * limit,
     take: limit,
     order: { createdAt: 'DESC' },
   });
 
-  return { users, total, page, lastPage };
-}
+  return { users, total, page: safePage, lastPage };
 
-
+  }
 
   async findOne(id: string): Promise<User> {
     const user = await this.usersRepository.findOne({ where: { id, deletedAt: IsNull() } });
     if (!user) throw new NotFoundException('User not found');
     return user;
   }
+  async findOneWithPassword(id: string): Promise<User> {
+  const user = await this.usersRepository
+    .createQueryBuilder('user')
+    .addSelect('user.passwordHash')
+    .where('user.id = :id', { id })
+    .andWhere('user.deleted_at IS NULL')
+    .getOne();
+
+    if (!user) throw new NotFoundException('User not found');
+    return user;
+  }
+
 
   async update(id: string, dto: UpdateUserDto): Promise<User> {
     const user = await this.findOne(id);
@@ -81,15 +90,23 @@ async findAll(
     if (user.id === adminId) {
       throw new BadRequestException('Admins cannot change their own role');
     }
+    if (user.role === UserRole.ADMIN && dto.role !== UserRole.ADMIN) {
+    const adminCount = await this.usersRepository.count({
+      where: { role: UserRole.ADMIN, deletedAt: IsNull() },
+    });
 
-    user.role = dto.role;
-    return this.usersRepository.save(user);
-  }
+    if (adminCount <= 1) {
+      throw new BadRequestException('Cannot remove last admin');
+    }
+    }
+      user.role = dto.role;
+      return this.usersRepository.save(user);
+    }
 
 
 
-  async changePassword(id: string, dto: ChangePasswordDto): Promise<void> {
-    const user = await this.findOne(id);
+  async changeOwnPassword(id: string, dto: ChangeOwnPasswordDto): Promise<void> {
+    const user = await this.findOneWithPassword(id);
     if (!(await bcrypt.compare(dto.currentPassword, user.passwordHash)))
       throw new BadRequestException('Current password incorrect');
 
@@ -101,6 +118,18 @@ async findAll(
     const lockedUntil = new Date(Date.now() + minutes * 60 * 1000);
     await this.usersRepository.update(id, { lockedUntil });
   }
+    async adminChangePassword(
+    id: string,
+    dto: AdminChangePasswordDto,
+    ): Promise<void> {
+    const user = await this.findOneWithPassword(id);
+
+    user.passwordHash = await bcrypt.hash(dto.newPassword, 10);
+    user.failedLoginAttempts = 0;
+    user.lockedUntil = null;
+
+    await this.usersRepository.save(user);
+  }
 
   async unlockAccount(id: string): Promise<void> {
     await this.usersRepository.update(id, { lockedUntil: null, failedLoginAttempts: 0 });
@@ -109,5 +138,25 @@ async findAll(
   async isLocked(id: string): Promise<boolean> {
     const user = await this.findOne(id);
     return !!(user.lockedUntil && user.lockedUntil > new Date());
+    }
+  async findByEmail(email: string): Promise<User | null> {
+  return this.usersRepository.findOne({ 
+    where: { email, deletedAt: IsNull() } 
+  });
+  }
+
+  async resetFailedAttempts(id: string): Promise<void> {
+    await this.usersRepository.update(id, { 
+      failedLoginAttempts: 0,
+      lockedUntil: null 
+    });
+  }
+
+  async incrementFailedAttempts(id: string): Promise<void> {
+    await this.usersRepository.increment({ id }, 'failedLoginAttempts', 1);
+  }
+
+  async updateLastLogin(id: string): Promise<void> {
+    await this.usersRepository.update(id, { lastLogin: new Date() });
   }
 }

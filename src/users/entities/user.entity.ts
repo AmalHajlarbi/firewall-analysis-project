@@ -1,18 +1,19 @@
 import { Entity, Column, PrimaryGeneratedColumn, Index, DeleteDateColumn, CreateDateColumn, UpdateDateColumn } from 'typeorm';
 import { Exclude } from 'class-transformer';
 import { UserRole } from '../../common/enums/role-permission.enum';
+import { SoftDeleteEntity } from 'src/common/database/softdelete.entity';
 
 @Entity('users')
-@Index(['email'], { unique: true })
-@Index(['username'], { unique: true })
-export class User {
+@Index(['email'])
+@Index(['username'])
+export class User extends SoftDeleteEntity {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ length: 255 })
+  @Column({ length: 255, unique: true })
   email: string;
 
-  @Column({ length: 100 })
+  @Column({ length: 100, unique: true })
   username: string;
 
   @Column({ name: 'password_hash', select: false })
@@ -40,13 +41,4 @@ export class User {
 
   @Column({ type: 'timestamp', nullable: true })
   lockedUntil: Date | null;
-
-  @CreateDateColumn({ name: 'created_at' })
-  createdAt: Date;
-
-  @UpdateDateColumn({ name: 'updated_at' })
-  updatedAt: Date;
-
-  @DeleteDateColumn({ name: 'deleted_at' })
-  deletedAt: Date | null;
 }
