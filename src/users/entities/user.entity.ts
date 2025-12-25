@@ -1,6 +1,6 @@
-// src/users/entities/user.entity.ts
 import { Entity, Column, PrimaryGeneratedColumn, Index, DeleteDateColumn, CreateDateColumn, UpdateDateColumn } from 'typeorm';
 import { Exclude } from 'class-transformer';
+import { UserRole } from '../../common/enums/role-permission.enum';
 
 @Entity('users')
 @Index(['email'], { unique: true })
@@ -15,15 +15,22 @@ export class User {
   @Column({ length: 100 })
   username: string;
 
-  @Column({ name: 'password_hash' })
+  @Column({ name: 'password_hash', select: false })
   @Exclude()
   passwordHash: string;
 
+  @Column({
+  type: 'enum',
+  enum: UserRole,
+  default: UserRole.ANALYST,
+  })
+  role: UserRole;
+  
   @Column({ default: true })
   isActive: boolean;
 
-  @Column({ default: false })
-  isVerified: boolean;
+  //@Column({ default: false })
+  //isVerified: boolean;
 
   @Column({ type: 'timestamp', nullable: true })
   lastLogin: Date | null;

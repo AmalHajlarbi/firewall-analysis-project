@@ -6,8 +6,11 @@ import {
   MaxLength,
   Matches,
   IsBoolean,
+  IsEnum,
 } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
+import { UserRole } from '../../common/enums/role-permission.enum';
+
 
 export class CreateUserDto {
   @ApiProperty({ example: 'admin@firewall.com' })
@@ -24,20 +27,6 @@ export class CreateUserDto {
   })
   username: string;
 
-  @ApiProperty({ example: 'Admin', required: false })
-  @IsString()
-  @IsOptional()
-  @MinLength(2)
-  @MaxLength(100)
-  firstName?: string;
-
-  @ApiProperty({ example: 'User', required: false })
-  @IsString()
-  @IsOptional()
-  @MinLength(2)
-  @MaxLength(100)
-  lastName?: string;
-
   @ApiProperty({ example: 'SecurePass123!' })
   @IsString()
   @MinLength(8)
@@ -47,6 +36,17 @@ export class CreateUserDto {
       'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character',
   })
   password: string;
+
+  @ApiProperty({ 
+    enum: UserRole, 
+    example: UserRole.ANALYST,
+    required: false 
+  })
+  
+  @ApiProperty({ example: UserRole.ANALYST, enum: UserRole, required: false })
+  @IsOptional()
+  @IsEnum(UserRole)
+  role?: UserRole;
 
   @ApiProperty({ example: true, required: false })
   @IsBoolean()
