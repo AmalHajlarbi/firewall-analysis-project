@@ -6,6 +6,8 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { UserRole } from 'src/common/enums/role-permission.enum';
 import { UpdateRoleDto } from './dto/update-role.dto';
+import { Roles } from 'src/common/decorators/roles.decorator';
+
 
 
 @ApiTags('users')
@@ -16,7 +18,7 @@ export class UsersController {
 
   @Post()
   //@UseGuards(JwtAuthGuard, RolesGuard)
-  //@Roles(UserRole.ADMIN)
+  @Roles(UserRole.ADMIN)
   @ApiOperation({ summary: 'Create user' })
   async create(@Body() dto: CreateUserDto) {
     return this.usersService.create(dto);
@@ -47,7 +49,7 @@ export class UsersController {
   @Delete(':id')
   @ApiBearerAuth()
   //@UseGuards(JwtAuthGuard, RolesGuard)
-  //@Roles(UserRole.ADMIN)
+  @Roles(UserRole.ADMIN)
   async remove(@Param('id', ParseUUIDPipe) id: string) {
     await this.usersService.remove(id);
     return { message: 'User deleted' };
@@ -55,7 +57,7 @@ export class UsersController {
 
   @Post(':id/restore')
   //@UseGuards(JwtAuthGuard, RolesGuard)
-  //@Roles(UserRole.ADMIN)
+  @Roles(UserRole.ADMIN)
   @ApiBearerAuth()
   async restore(@Param('id', ParseUUIDPipe) id: string) {
     const user = await this.usersService.restore(id);
@@ -63,7 +65,7 @@ export class UsersController {
   }
 
   //@UseGuards(JwtAuthGuard, RolesGuard)
-  //@Roles(UserRole.ADMIN)
+  @Roles(UserRole.ADMIN)
   @Patch(':id/role')
   @ApiOperation({ summary: 'Update user role (admin only)' })
   async updateRole(
@@ -84,7 +86,7 @@ export class UsersController {
 
   @Post(':id/lock')
   //@UseGuards(JwtAuthGuard, RolesGuard)
-  //@Roles(UserRole.ADMIN)
+  @Roles(UserRole.ADMIN)
   @ApiBearerAuth()
   async lockAccount(@Param('id', ParseUUIDPipe) id: string, @Query('minutes') minutes?: number) {
     await this.usersService.lockAccount(id, minutes);
@@ -93,7 +95,7 @@ export class UsersController {
 
   @Post(':id/unlock')
   //@UseGuards(JwtAuthGuard, RolesGuard)
-  //@Roles(UserRole.ADMIN)
+  @Roles(UserRole.ADMIN)
   @ApiBearerAuth()
   async unlockAccount(@Param('id', ParseUUIDPipe) id: string) {
     await this.usersService.unlockAccount(id);
