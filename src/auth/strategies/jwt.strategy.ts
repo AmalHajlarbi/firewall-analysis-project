@@ -19,7 +19,8 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     
     // Validate secret before calling super()
     if (!secret) {
-      console.error('JWT_SECRET is not configured in environment variables');
+      // Can't use this.logger here, use console.error instead
+      console.error('❌ JWT_SECRET is not configured in environment variables');
       throw new Error('JWT secret is not configured');
     }
     
@@ -30,33 +31,32 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       secretOrKey: secret,
     });
     
-    // NOW you can initialize logger and use 'this'
     this.logger = new Logger(JwtStrategy.name);
     this.logger.log('JWT Strategy initialized');
   }
 
   async validate(payload: AuthPayload): Promise<AuthenticatedUser> {
-    this.logger.debug('Validating JWT for user: ${payload.sub}');
+    this.logger.debug(`Validating JWT for user: ${payload.sub}`);
     
     try {
       const user = await this.usersService.findOne(payload.sub);
       
       if (!user) {
-        this.logger.warn('User not found for JWT sub: ${payload.sub}');
+        this.logger.warn(`User not found for JWT sub: ${payload.sub}`);
         throw new UnauthorizedException('User not found');
       }
       
       if (!user.isActive) {
-        this.logger.warn('Inactive user attempted login: ${user.email}');
+        this.logger.warn(`Inactive user attempted login: ${user.email}`);
         throw new UnauthorizedException('User account is deactivated');
       }
       
       if (user.lockedUntil && user.lockedUntil > new Date()) {
-        this.logger.warn('Locked user attempted login: ${user.email}');
+        this.logger.warn(`Locked user attempted login: ${user.email}`);
         throw new UnauthorizedException('User account is locked');
       }
 
-      this.logger.debug('JWT validation successful for user: ${user.email}');
+      this.logger.debug(`JWT validation successful for user: ${user.email}`);
       return {
         id: user.id,
         email: user.email,
@@ -65,7 +65,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
         isActive: user.isActive,
       };
     } catch (error) {
-      this.logger.error('JWT validation failed: ${error.message}');
+      this.logger.error(`JWT validation failed: ${error.message}`);
       throw new UnauthorizedException('Invalid token or user not found');
     }
   }

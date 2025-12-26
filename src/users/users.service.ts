@@ -76,6 +76,18 @@ async findAll(
 
   async remove(id: string): Promise<void> {
     const user = await this.findOne(id);
+    
+    // Prevent deleting last admin
+    if (user.role === UserRole.ADMIN) {
+      const adminCount = await this.usersRepository.count({
+        where: { role: UserRole.ADMIN, deletedAt: IsNull() },
+      });
+      
+      if (adminCount <= 1) {
+        throw new BadRequestException('Cannot delete the last admin');
+      }
+    }
+    
     await this.usersRepository.softRemove(user);
   }
 

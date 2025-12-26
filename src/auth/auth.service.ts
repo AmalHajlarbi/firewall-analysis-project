@@ -83,54 +83,13 @@ export class AuthService {
     return user;
   }
 
-  async login(loginDto: LoginDto): Promise<AuthResponse> {
-    const user = await this.validateUser(loginDto.email, loginDto.password);
-    
-    const payload: AuthPayload = {
-      sub: user.id,
-      email: user.email,
-      username: user.username,
-      role: user.role,
+  private async generateAndStoreTokens(user: User): Promise<{ accessToken: string; refreshToken: string }> {
+    const payload = { 
+      sub: user.id, 
+      email: user.email, 
+      username: user.username, 
+      role: user.role 
     };
-
-    const accessToken = this.jwtService.sign(payload , {
-      expiresIn: this.configService.get<number>('security.jwtExpiresIn', 3600),
-    });
-    
-    const refreshToken = this.jwtService.sign(payload, {
-      secret: this.configService.get<string>('security.jwtRefreshSecret'),
-      expiresIn: this.configService.get<number>('security.jwtRefreshExpiresIn', 604800),
-    });
-
-    // Store hashed refresh token
-    await this.usersService.setCurrentRefreshToken(user.id, refreshToken);
-
-
-    return {
-      access_token: accessToken,
-      refresh_token: refreshToken,
-      user: {
-        id: user.id,
-        email: user.email,
-        username: user.username,
-        role: user.role,
-        isActive: user.isActive,
-      },
-    };
-  }
-
-  async register(registerDto: RegisterDto): Promise<AuthResponse> {
-    // Check if user already exists
-    const existingUser = await this.usersService.findByEmail(registerDto.email);
-    if (existingUser) {
-      throw new ConflictException('Email already exists');
-    }
-
-    // Create the user
-    const user = await this.usersService.create(registerDto);
-    
-    // Generate tokens
-    const payload = { sub: user.id, email: user.email, username: user.username, role: user.role };
 
     const accessToken = this.jwtService.sign(payload, {
       expiresIn: this.configService.get<number>('security.jwtExpiresIn', 3600),
@@ -140,24 +99,40 @@ export class AuthService {
       secret: this.configService.get<string>('security.jwtRefreshSecret'),
       expiresIn: this.configService.get<number>('security.jwtRefreshExpiresIn', 604800),
     });
+
+    // Store hashed refresh token in DB
     await this.usersService.setCurrentRefreshToken(user.id, refreshToken);
 
-    return {
-      access_token: accessToken,
-      refresh_token: refreshToken,
-      user: {
-        id: user.id,
-        email: user.email,
-        username: user.username,
-        role: user.role,
-        isActive: user.isActive,
-      },
-    };
+    return { accessToken, refreshToken };
   }
 
+  async login(loginDto: LoginDto): Promise<AuthResponse> {
+  const user = await this.validateUser(loginDto.email, loginDto.password);
+  const { accessToken, refreshToken } = await this.generateAndStoreTokens(user);
+  
+  return {
+    access_token: accessToken,
+    refresh_token: refreshToken,
+    user: { id: user.id, email: user.email, username: user.username, role: user.role, isActive: user.isActive },
+  };
+}
+
+async register(registerDto: RegisterDto): Promise<AuthResponse> {
+  const user = await this.usersService.create(registerDto);
+  const { accessToken, refreshToken } = await this.generateAndStoreTokens(user);
+  
+  return {
+    access_token: accessToken,
+    refresh_token: refreshToken,
+    user: { id: user.id, email: user.email, username: user.username, role: user.role, isActive: user.isActive },
+  };
+}
 
   async refreshToken(refreshToken: string): Promise<{ access_token: string; refresh_token: string }> {
-    let payload: any;
+  if (!refreshToken) {
+    throw new BadRequestException('Refresh token is required');
+  }
+  let payload: any;
 
     try {
       payload = this.jwtService.verify(refreshToken, {
