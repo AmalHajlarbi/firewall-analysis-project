@@ -58,6 +58,7 @@ async findAll(
   const user = await this.usersRepository
     .createQueryBuilder('user')
     .addSelect('user.passwordHash')
+    .addSelect('user.refreshTokenHash')
     .where('user.id = :id', { id })
     .andWhere('user.deleted_at IS NULL')
     .getOne();
@@ -140,10 +141,14 @@ async findAll(
     return !!(user.lockedUntil && user.lockedUntil > new Date());
     }
   async findByEmail(email: string): Promise<User | null> {
-  return this.usersRepository.findOne({ 
-    where: { email, deletedAt: IsNull() } 
-  });
+    return this.usersRepository
+      .createQueryBuilder('user')
+      .addSelect('user.passwordHash')
+      .where('user.email = :email', { email })
+      .andWhere('user.deleted_at IS NULL')
+      .getOne();
   }
+
 
   async resetFailedAttempts(id: string): Promise<void> {
     await this.usersRepository.update(id, { 
@@ -158,5 +163,14 @@ async findAll(
 
   async updateLastLogin(id: string): Promise<void> {
     await this.usersRepository.update(id, { lastLogin: new Date() });
+  }
+
+  async setCurrentRefreshToken(userId: string, refreshToken: string) {
+    const hash = await bcrypt.hash(refreshToken, 10);
+    await this.usersRepository.update(userId, { refreshTokenHash: hash });
+  }
+
+  async removeRefreshToken(userId: string) {
+    await this.usersRepository.update(userId, { refreshTokenHash: null });
   }
 }

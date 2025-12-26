@@ -12,7 +12,6 @@ export abstract class TimestampEntity {
     name: 'updated_at',
     type: 'timestamp',
     default: () => 'CURRENT_TIMESTAMP',
-    onUpdate: 'CURRENT_TIMESTAMP',
-  })
+    })
   updatedAt: Date;
 }

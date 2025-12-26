@@ -3,14 +3,17 @@ import { APP_GUARD } from '@nestjs/core';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+
 import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { UsersModule } from '../users/users.module';
-import { JwtAuthGuard } from './guards/jwt-auth.guard';
-import { PublicGuard } from './guards/public.guard';
 
-@Global() // Makes module available globally
+import { AuthGuard } from './guards/auth.guard';
+import { RolesGuard } from './guards/roles.guard';
+import { PermissionsGuard } from './guards/permissions.guard';
+
+@Global()
 @Module({
   imports: [
     UsersModule,
@@ -30,15 +33,18 @@ import { PublicGuard } from './guards/public.guard';
   providers: [
     AuthService,
     JwtStrategy,
-    JwtAuthGuard,
-    PublicGuard,
+
     {
       provide: APP_GUARD,
-      useClass: JwtAuthGuard, // Apply JwtAuthGuard globally
+      useClass: AuthGuard, 
     },
     {
       provide: APP_GUARD,
-      useClass: PublicGuard, // Apply PublicGuard globally
+      useClass: RolesGuard,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: PermissionsGuard,
     },
   ],
   exports: [AuthService, JwtModule],

@@ -1,13 +1,11 @@
 import { UserRole } from '../../common/enums/role-permission.enum';
 
 export interface AuthPayload {
-  sub: string; // user id
+  sub: string;
   email: string;
   username: string;
   role: UserRole;
 }
 
-export interface DecodedAuthPayload extends AuthPayload {
-  iat: number; // issued at
-  exp: number; // expires at
-}
+// Add this for JWT service compatibility
+export type JwtPayload = Record<string, any> & AuthPayload;

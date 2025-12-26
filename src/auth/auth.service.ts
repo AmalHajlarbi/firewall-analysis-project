@@ -99,8 +99,12 @@ export class AuthService {
     
     const refreshToken = this.jwtService.sign(payload, {
       secret: this.configService.get<string>('security.jwtRefreshSecret'),
-      expiresIn: this.configService.get<number>('security.jwtRefreshExpiresIn', 604800), // 7 days in seconds
+      expiresIn: this.configService.get<number>('security.jwtRefreshExpiresIn', 604800),
     });
+
+    // Store hashed refresh token
+    await this.usersService.setCurrentRefreshToken(user.id, refreshToken);
+
 
     return {
       access_token: accessToken,
@@ -115,12 +119,7 @@ export class AuthService {
     };
   }
 
-  async register(registerDto: RegisterDto, currentUserRole?: UserRole): Promise<AuthResponse> {
-    // Prevent non-admins from creating admin users
-    if (registerDto.role === UserRole.ADMIN && currentUserRole !== UserRole.ADMIN) {
-      throw new BadRequestException('Only admins can create admin users');
-    }
-
+  async register(registerDto: RegisterDto): Promise<AuthResponse> {
     // Check if user already exists
     const existingUser = await this.usersService.findByEmail(registerDto.email);
     if (existingUser) {
@@ -131,21 +130,17 @@ export class AuthService {
     const user = await this.usersService.create(registerDto);
     
     // Generate tokens
-    const payload: AuthPayload = {
-      sub: user.id,
-      email: user.email,
-      username: user.username,
-      role: user.role,
-    };
+    const payload = { sub: user.id, email: user.email, username: user.username, role: user.role };
 
-    const accessToken = this.jwtService.sign(payload , {
+    const accessToken = this.jwtService.sign(payload, {
       expiresIn: this.configService.get<number>('security.jwtExpiresIn', 3600),
     });
 
     const refreshToken = this.jwtService.sign(payload, {
       secret: this.configService.get<string>('security.jwtRefreshSecret'),
-      expiresIn: this.configService.get<number>('security.jwtRefreshExpiresIn', 604800 ), // 7 days in seconds
+      expiresIn: this.configService.get<number>('security.jwtRefreshExpiresIn', 604800),
     });
+    await this.usersService.setCurrentRefreshToken(user.id, refreshToken);
 
     return {
       access_token: accessToken,
@@ -160,36 +155,52 @@ export class AuthService {
     };
   }
 
-  async refreshToken(refreshToken: string): Promise<{ access_token: string }> {
+
+  async refreshToken(refreshToken: string): Promise<{ access_token: string; refresh_token: string }> {
+    let payload: any;
+
     try {
-      const payload = this.jwtService.verify(refreshToken, {
+      payload = this.jwtService.verify(refreshToken, {
         secret: this.configService.get<string>('security.jwtRefreshSecret'),
       });
-
-      // Check if user still exists and is active
-      const user = await this.usersService.findOne(payload.sub);
-      
-      if (!user || !user.isActive) {
-        throw new UnauthorizedException('User not found or inactive');
-      }
-
-      // Generate new access token
-      const newPayload: AuthPayload = {
-        sub: user.id,
-        email: user.email,
-        username: user.username,
-        role: user.role,
-      };
-
-      return {
-        access_token: this.jwtService.sign(newPayload , {
-          expiresIn: this.configService.get<number>('security.jwtExpiresIn', 3600),
-        }),
-      };
     } catch (error) {
       throw new UnauthorizedException('Invalid refresh token');
     }
+
+    const userId = payload.sub;
+    const user = await this.usersService.findOneWithPassword(userId);
+
+    if (!user || !user.isActive) {
+      throw new UnauthorizedException('User not found or inactive');
+    }
+
+    const isRefreshTokenValid = await bcrypt.compare(refreshToken, user.refreshTokenHash ?? '');
+    if (!isRefreshTokenValid) {
+      throw new UnauthorizedException('Invalid refresh token');
+    }
+
+    const newRefreshToken = this.jwtService.sign(payload, {
+      secret: this.configService.get<string>('security.jwtRefreshSecret'),
+      expiresIn: this.configService.get<number>('security.jwtRefreshExpiresIn', 604800),
+    });
+
+    await this.usersService.setCurrentRefreshToken(userId, newRefreshToken);
+
+    const accessToken = this.jwtService.sign({
+      sub: user.id,
+      email: user.email,
+      username: user.username,
+      role: user.role,
+    }, {
+      expiresIn: this.configService.get<number>('security.jwtExpiresIn', 3600),
+    });
+
+    return {
+      access_token: accessToken,
+      refresh_token: newRefreshToken,
+    };
   }
+
 
   private async handleFailedLogin(user: User): Promise<void> {
     const newAttempts = user.failedLoginAttempts + 1;
@@ -206,6 +217,9 @@ export class AuthService {
   }
 
   async logout(userId: string): Promise<void> {
-    this.logger.log(`User ${userId} logged out`);
+    // Remove stored refresh token
+    await this.usersService.removeRefreshToken(userId);
+    this.logger.log(`User ${userId} logged out and refresh token removed`);
   }
+
 }

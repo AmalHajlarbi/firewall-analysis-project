@@ -6,4 +6,5 @@ export class UpdateRoleDto {
   @ApiProperty({ enum: UserRole, example: UserRole.ADMIN })
   @IsEnum(UserRole)
   role: UserRole;
+  
 }

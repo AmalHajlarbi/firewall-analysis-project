@@ -11,38 +11,39 @@ import {
   DefaultValuePipe, 
   ParseIntPipe, 
   UseInterceptors, 
-  ClassSerializerInterceptor, 
-  UseGuards 
+  ClassSerializerInterceptor,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import {ChangeOwnPasswordDto, AdminChangePasswordDto} from './dto/change-password.dto';
+import { ChangeOwnPasswordDto, AdminChangePasswordDto } from './dto/change-password.dto';
 import { UpdateRoleDto } from './dto/update-role.dto';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { RolesGuard } from '../auth/guards/roles.guard';
-import { Roles } from '../auth/decorators/roles.decorator';
+import { Permissions } from '../auth/decorators/permissions.decorator';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
-import { UserRole } from '../common/enums/role-permission.enum';
+import { Permission, UserRole } from '../common/enums/role-permission.enum';
 
 @ApiTags('users')
+@ApiBearerAuth()
 @Controller('users')
 @UseInterceptors(ClassSerializerInterceptor)
-@UseGuards(JwtAuthGuard, RolesGuard) // Apply guards to all routes
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
+  // --------------------------------------------------------------------------------
+  // CREATE & LIST USERS
+  // --------------------------------------------------------------------------------
+
   @Post()
-  @Roles(UserRole.ADMIN)
-  @ApiOperation({ summary: 'Create user (Admin only)' })
+  @Permissions(Permission.MANAGE_USERS)
+  @ApiOperation({ summary: 'Create user (requires MANAGE_USERS permission)' })
   async create(@Body() dto: CreateUserDto) {
     return this.usersService.create(dto);
   }
 
   @Get()
-  @Roles(UserRole.ADMIN)
-  @ApiOperation({ summary: 'List users (Admin only)' })
+  @Permissions(Permission.VIEW_USERS)
+  @ApiOperation({ summary: 'List users (requires VIEW_USERS permission)' })
   @ApiQuery({ name: 'page', required: false, type: Number, example: 1 })
   @ApiQuery({ name: 'limit', required: false, type: Number, example: 20 })
   async findAll(
@@ -52,48 +53,60 @@ export class UsersController {
     return this.usersService.findAll(page, limit);
   }
 
+  // --------------------------------------------------------------------------------
+  // PROFILE
+  // --------------------------------------------------------------------------------
+
   @Get('profile')
-  @ApiOperation({ summary: 'Get current user profile' })
+  @ApiOperation({ summary: 'Get current user profile (requires VIEW_USERS permission)' })
   async getProfile(@CurrentUser() user: any) {
     return this.usersService.findOne(user.id);
   }
 
+  // --------------------------------------------------------------------------------
+  // READ / UPDATE / DELETE BY ID
+  // --------------------------------------------------------------------------------
+
   @Get(':id')
-  @Roles(UserRole.ADMIN)
-  @ApiOperation({ summary: 'Get user by ID (Admin only)' })
+  @Permissions(Permission.VIEW_USERS)
+  @ApiOperation({ summary: 'Get user by ID (requires VIEW_USERS permission)' })
   async findOne(@Param('id', ParseUUIDPipe) id: string) {
     return this.usersService.findOne(id);
   }
 
   @Patch(':id')
-  @Roles(UserRole.ADMIN)
-  @ApiOperation({ summary: 'Update user (Admin only)' })
+  @Permissions(Permission.MANAGE_USERS)
+  @ApiOperation({ summary: 'Update user (requires MANAGE_USERS permission)' })
   async update(
     @Param('id', ParseUUIDPipe) id: string, 
-    @Body() dto: UpdateUserDto
+    @Body() dto: UpdateUserDto,
   ) {
     return this.usersService.update(id, dto);
   }
 
   @Delete(':id')
-  @Roles(UserRole.ADMIN)
-  @ApiOperation({ summary: 'Delete user (Admin only)' })
+  @Permissions(Permission.MANAGE_USERS)
+  @ApiOperation({ summary: 'Delete user (requires MANAGE_USERS permission)' })
   async remove(@Param('id', ParseUUIDPipe) id: string) {
     await this.usersService.remove(id);
     return { message: 'User deleted' };
   }
 
   @Post(':id/restore')
-  @Roles(UserRole.ADMIN)
-  @ApiOperation({ summary: 'Restore deleted user (Admin only)' })
+  @Permissions(Permission.MANAGE_USERS)
+  @ApiOperation({ summary: 'Restore user (requires MANAGE_USERS permission)' })
   async restore(@Param('id', ParseUUIDPipe) id: string) {
     const user = await this.usersService.restore(id);
     return { message: 'User restored', user };
   }
 
+  // --------------------------------------------------------------------------------
+  // ROLE MANAGEMENT
+  // --------------------------------------------------------------------------------
+
   @Patch(':id/role')
-  @Roles(UserRole.ADMIN)
-  @ApiOperation({ summary: 'Update user role (Admin only)' })
+  @Permissions(Permission.MANAGE_USERS)
+  @ApiOperation({ summary: 'Update user role (requires MANAGE_USERS permission)' })
   async updateRole(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: UpdateRoleDto,
@@ -103,7 +116,13 @@ export class UsersController {
     return { message: 'User role updated', user: updated };
   }
 
+  // --------------------------------------------------------------------------------
+  // PASSWORD MANAGEMENT
+  // --------------------------------------------------------------------------------
+
   @Post('change-password')
+  @Permissions(Permission.CHANGE_OWN_PASSWORD)
+  @ApiOperation({ summary: 'Change own password (requires MANAGE_USERS permission)' })
   async changeOwnPassword(
     @CurrentUser() user: any,
     @Body() dto: ChangeOwnPasswordDto,
@@ -113,7 +132,8 @@ export class UsersController {
   }
 
   @Post(':id/change-password')
-  @Roles(UserRole.ADMIN)
+  @Permissions(Permission.MANAGE_USERS)
+  @ApiOperation({ summary: 'Change another user’s password (requires MANAGE_USERS permission)' })
   async changeUserPassword(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: AdminChangePasswordDto,
@@ -122,20 +142,24 @@ export class UsersController {
     return { message: 'Password changed' };
   }
 
+  // --------------------------------------------------------------------------------
+  // LOCK / UNLOCK
+  // --------------------------------------------------------------------------------
+
   @Post(':id/lock')
-  @Roles(UserRole.ADMIN)
-  @ApiOperation({ summary: 'Lock user account (Admin only)' })
+  @Permissions(Permission.MANAGE_USERS)
+  @ApiOperation({ summary: 'Lock user account (requires MANAGE_USERS permission)' })
   async lockAccount(
     @Param('id', ParseUUIDPipe) id: string, 
-    @Query('minutes') minutes?: number
+    @Query('minutes') minutes?: number,
   ) {
     await this.usersService.lockAccount(id, minutes);
     return { message: 'Account locked' };
   }
 
   @Post(':id/unlock')
-  @Roles(UserRole.ADMIN)
-  @ApiOperation({ summary: 'Unlock user account (Admin only)' })
+  @Permissions(Permission.MANAGE_USERS)
+  @ApiOperation({ summary: 'Unlock user account (requires MANAGE_USERS permission)' })
   async unlockAccount(@Param('id', ParseUUIDPipe) id: string) {
     await this.usersService.unlockAccount(id);
     return { message: 'Account unlocked' };

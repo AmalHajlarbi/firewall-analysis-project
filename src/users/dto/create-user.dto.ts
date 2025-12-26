@@ -36,12 +36,6 @@ export class CreateUserDto {
       'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character',
   })
   password: string;
-
-  @ApiProperty({ 
-    enum: UserRole, 
-    example: UserRole.ANALYST,
-    required: false 
-  })
   
   @ApiProperty({ example: UserRole.ANALYST, enum: UserRole, required: false })
   @IsOptional()

@@ -6,7 +6,8 @@ import {
   HttpCode, 
   HttpStatus, 
   UseGuards,
-  Get 
+  Get, 
+  BadRequestException
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
@@ -16,6 +17,7 @@ import { RefreshTokenDto } from './dto/refresh-token.dto';
 import { CurrentUser } from './decorators/current-user.decorator';
 import { Public } from './decorators/public.decorator';
 import { UserRole } from '../common/enums/role-permission.enum';
+import { Roles } from './decorators/roles.decorator';
 
 @ApiTags('auth')
 @Controller('auth')
@@ -35,17 +37,25 @@ export class AuthController {
   @Public()
   @Post('register')
   @HttpCode(HttpStatus.CREATED)
-  @ApiOperation({ summary: 'Register new user' })
-  @ApiResponse({ status: 201, description: 'User registered successfully' })
-  @ApiResponse({ status: 400, description: 'Bad request' })
-  @ApiResponse({ status: 409, description: 'Email already exists' })
+  @ApiOperation({ summary: 'Register new user (public)' })
   async register(@Body() registerDto: RegisterDto) {
-    // Use enum value instead of string literal
-    if (!registerDto.role) {
-      registerDto.role = UserRole.ANALYST;
-    }
+    // Force role to ANALYST only on public
+    registerDto.role = UserRole.ANALYST;
     return this.authService.register(registerDto);
   }
+  @Post('register/admin')
+  @Roles(UserRole.ADMIN)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Register new user (Admin only)' })
+  async adminRegister(
+    @Body() registerDto: RegisterDto,
+    ) {
+      if (registerDto.role !== UserRole.ADMIN && registerDto.role !== UserRole.ANALYST) {
+        throw new BadRequestException('Invalid role');
+      }
+      return this.authService.register(registerDto);
+    }
+
 
   @Public()
   @Post('refresh')

@@ -1,7 +1,6 @@
 export enum UserRole {
   ADMIN = 'admin',
   ANALYST = 'analyst',
-  VIEWER = 'viewer',
 }
 
 export enum Permission {
@@ -20,5 +19,7 @@ export enum Permission {
   
   // System
   MANAGE_SYSTEM = 'manage_system',
+  CHANGE_OWN_PASSWORD = 'change_own_password'
+
 }
 

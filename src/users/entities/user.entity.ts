@@ -1,4 +1,4 @@
-import { Entity, Column, PrimaryGeneratedColumn, Index, DeleteDateColumn, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, Index} from 'typeorm';
 import { Exclude } from 'class-transformer';
 import { UserRole } from '../../common/enums/role-permission.enum';
 import { SoftDeleteEntity } from 'src/common/database/softdelete.entity';
@@ -29,6 +29,10 @@ export class User extends SoftDeleteEntity {
   
   @Column({ default: true })
   isActive: boolean;
+  
+  @Column({ name: 'refresh_token_hash', nullable: true, select: false })
+  refreshTokenHash?: string | null;
+
 
   //@Column({ default: false })
   //isVerified: boolean;
