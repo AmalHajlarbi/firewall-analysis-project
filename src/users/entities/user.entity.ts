@@ -4,8 +4,8 @@ import { UserRole } from '../../common/enums/role-permission.enum';
 import { SoftDeleteEntity } from 'src/common/database/softdelete.entity';
 
 @Entity('users')
-@Index(['email'])
-@Index(['username'])
+//@Index(['email'])
+//@Index(['username'])
 export class User extends SoftDeleteEntity {
   @PrimaryGeneratedColumn('uuid')
   id: string;
