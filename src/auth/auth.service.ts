@@ -129,10 +129,11 @@ async register(registerDto: RegisterDto): Promise<AuthResponse> {
 }
 
   async refreshToken(refreshToken: string): Promise<{ access_token: string; refresh_token: string }> {
-  if (!refreshToken) {
-    throw new BadRequestException('Refresh token is required');
-  }
-  let payload: any;
+    if (!refreshToken) {
+      throw new BadRequestException('Refresh token is required');
+    }
+
+    let payload: any;
 
     try {
       payload = this.jwtService.verify(refreshToken, {
@@ -149,34 +150,20 @@ async register(registerDto: RegisterDto): Promise<AuthResponse> {
       throw new UnauthorizedException('User not found or inactive');
     }
 
+    // Validate the refresh token matches what's stored
     const isRefreshTokenValid = await bcrypt.compare(refreshToken, user.refreshTokenHash ?? '');
     if (!isRefreshTokenValid) {
       throw new UnauthorizedException('Invalid refresh token');
     }
 
-    const newRefreshToken = this.jwtService.sign(payload, {
-      secret: this.configService.get<string>('security.jwtRefreshSecret'),
-      expiresIn: this.configService.get<number>('security.jwtRefreshExpiresIn', 604800),
-    });
-
-    await this.usersService.setCurrentRefreshToken(userId, newRefreshToken);
-
-    const accessToken = this.jwtService.sign({
-      sub: user.id,
-      email: user.email,
-      username: user.username,
-      role: user.role,
-    }, {
-      expiresIn: this.configService.get<number>('security.jwtExpiresIn', 3600),
-    });
+    // Generate new tokens using the extracted method
+    const tokens = await this.generateAndStoreTokens(user);
 
     return {
-      access_token: accessToken,
-      refresh_token: newRefreshToken,
+      access_token: tokens.accessToken,
+      refresh_token: tokens.refreshToken,
     };
   }
-
-
   private async handleFailedLogin(user: User): Promise<void> {
     const newAttempts = user.failedLoginAttempts + 1;
     
