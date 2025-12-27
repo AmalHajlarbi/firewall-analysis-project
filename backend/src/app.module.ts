@@ -1,36 +1,51 @@
+// src/app.module.ts
 import { Module } from '@nestjs/common';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
-import { SearchModule } from './search/search.module';
-import { AnalysisModule } from './analysis/analysis.module';
-import { ReportsModule } from './reports/reports.module';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
-import { AuditModule } from './audit/audit.module';
-import { UserModule } from './users/users.module';
-import { ConfigModule} from '@nestjs/config';
+import { AuthAuditModule } from './authaudit/authaudit.module';
+import configuration from './config/configuration';
 
 @Module({
-  imports: [ 
-    ConfigModule.forRoot({ isGlobal: true }), // ✅ Loads .env variables
-    TypeOrmModule.forRoot({ // ✅ Configure database connection here
-      type: 'mysql',
-      host: process.env.MYSQL_HOST,
-      port: parseInt(process.env.MYSQL_PORT) || 3306,
-      username: process.env.MYSQL_USER,
-      password: process.env.MYSQL_PASSWORD,
-      database: process.env.MYSQL_DB,
-      entities: [__dirname + '/**/*.entity{.ts,.js}'],
-      synchronize: process.env.NODE_ENV !== 'production', // Be careful in prod!
+  imports: [
+    // Configuration Module (Loads .env files)
+    ConfigModule.forRoot({
+      isGlobal: true, // Makes ConfigService available everywhere
+      load: [configuration], // Load our configuration
+      envFilePath: `.env.${process.env.NODE_ENV || 'development'}`, // Load specific .env file
     }),
+    
+    // Database Module (Async configuration)
+    TypeOrmModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => ({
+        type: 'mysql',
+        host: configService.get('database.host'),
+        port: configService.get('database.port'),
+        username: configService.get('database.username'),
+        password: configService.get('database.password'),
+        database: configService.get('database.database'),
+        entities: [__dirname + '/**/*.entity{.ts,.js}'], // Auto-load all entities
+        synchronize: configService.get('database.synchronize'),
+        logging: configService.get('database.logging'),
+        charset: 'utf8mb4',
+        timezone: 'Z', // UTC timezone
+        // Connection pool settings
+        extra: {
+          connectionLimit: 10,
+        },
+      }),
+    }),
+    
+    // Feature Modules
+    UsersModule,
+    
     AuthModule,
-    UserModule,
-    AuditModule,
-    SearchModule,
-    AnalysisModule,
-    ReportsModule,
+    
+    AuthAuditModule,
+    
   ],
-  controllers: [AppController],
-  providers: [AppService],
 })
 export class AppModule {}

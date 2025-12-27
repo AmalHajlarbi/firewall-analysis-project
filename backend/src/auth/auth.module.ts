@@ -1,26 +1,52 @@
-import { Module } from '@nestjs/common';
+import { Module, Global } from '@nestjs/common';
+import { APP_GUARD } from '@nestjs/core';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+
 import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
-import { UserModule } from '../users/users.module';
-import { JwtStrategy } from './jwt.strategy';
-import {  RefreshStrategy } from './refresh.strategy';
-import { RefreshToken } from './entities/refresh-token.entity';
-import { AuditModule } from '../audit/audit.module';
-import { TypeOrmModule } from '@nestjs/typeorm/dist/typeorm.module';
+import { JwtStrategy } from './strategies/jwt.strategy';
+import { UsersModule } from '../users/users.module';
+
+import { AuthGuard } from './guards/auth.guard';
+import { RolesGuard } from './guards/roles.guard';
+import { PermissionsGuard } from './guards/permissions.guard';
+
+@Global()
 @Module({
   imports: [
-    TypeOrmModule.forFeature([RefreshToken]),
-    AuditModule,
-    PassportModule,
-    JwtModule.register({
-      secret: process.env.JWT_SECRET || 'default-secret',
-      signOptions: { expiresIn: parseInt(process.env.JWT_EXPIRATION || '900') },
+    UsersModule,
+    PassportModule.register({ defaultStrategy: 'jwt' }),
+    JwtModule.registerAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => ({
+        secret: configService.get<string>('security.jwtSecret'),
+        signOptions: {
+          expiresIn: configService.get<number>('security.jwtExpiresIn', 3600),
+        },
+      }),
     }),
-    UserModule,
   ],
-  providers: [AuthService, JwtStrategy, RefreshStrategy],
   controllers: [AuthController],
+  providers: [
+    AuthService,
+    JwtStrategy,
+
+    {
+      provide: APP_GUARD,
+      useClass: AuthGuard, 
+    },
+    {
+      provide: APP_GUARD,
+      useClass: RolesGuard,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: PermissionsGuard,
+    },
+  ],
+  exports: [AuthService, JwtModule],
 })
 export class AuthModule {}

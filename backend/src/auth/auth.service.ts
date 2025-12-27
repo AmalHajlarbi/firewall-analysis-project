@@ -1,81 +1,301 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { 
+  Injectable, 
+  UnauthorizedException, 
+  BadRequestException,
+  Logger,
+  ConflictException 
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
-import { UsersService } from '../users/user.service';
-import { LoginDto } from './dtos/login.dto';
-import { v4 as uuid } from 'uuid';
-import { RefreshToken } from './entities/refresh-token.entity';
-import { AuditService } from '../audit/audit.service';
-import { InjectRepository } from '@nestjs/typeorm/dist/common/typeorm.decorators';
-import { Repository } from 'typeorm/repository/Repository.js';
+import { ConfigService } from '@nestjs/config';
+import { UsersService } from '../users/users.service';
+import { LoginDto } from './dto/login.dto';
+import { RegisterDto } from './dto/register.dto';
+import { User } from '../users/entities/user.entity';
+import { UserRole } from '../common/enums/role-permission.enum';
+import { AuthAuditService } from '../authaudit/authaudit.service';
+import { AuditAction, AuditStatus } from '../common/enums/authaudit.enum';
+import { AuthenticatedUser } from './interfaces/authenticated-request.interface';
+
+export interface AuthResponse {
+  access_token: string;
+  refresh_token?: string;
+  user: {
+    id: string;
+    email: string;
+    username: string;
+    role: UserRole;
+    isActive: boolean;
+  };
+}
 
 @Injectable()
 export class AuthService {
-  constructor(
-    private usersService: UsersService,
-    private jwtService: JwtService,
-    @InjectRepository(RefreshToken)
-    private rtRepo: Repository<RefreshToken>,
-    private audit: AuditService,
-  ) {}
+  private readonly logger = new Logger(AuthService.name);
+  private readonly maxLoginAttempts: number;
+  private readonly lockDurationMinutes: number;
 
-  async validateUser(email: string, pass: string) {
-    const user = await this.usersService.findByEmail(email);
-    if (user && (await bcrypt.compare(pass, user.password))) {
-      return user;
-    }
-    return null;
+  constructor(
+    private readonly usersService: UsersService,
+    private readonly jwtService: JwtService,
+    private readonly configService: ConfigService,
+    private readonly authAuditService: AuthAuditService,
+  ) {
+    this.maxLoginAttempts = this.configService.get<number>('security.maxLoginAttempts', 5);
+    this.lockDurationMinutes = this.configService.get<number>('security.lockDurationMinutes', 15);
   }
 
-  async login(loginDto: LoginDto) {
-    const user = await this.validateUser(loginDto.email, loginDto.password);
-    if (!user) throw new UnauthorizedException();
+  async validateUser(email: string, password: string): Promise<User> {
+    const user = await this.usersService.findByEmail(email);
+    
+    if (!user) {
+      await this.authAuditService.logLoginFailed(
+        email,
+        'User not found',
+      );
 
-    const accessToken = this.jwtService.sign({ sub: user.id, roles: user.roles.map(r => r.name) });
+      throw new UnauthorizedException('Invalid credentials');
+    }
+    // Check if account is locked
+    if (user.lockedUntil && user.lockedUntil > new Date()) {
+      await this.authAuditService.logAuthEvent(
+        AuditAction.ACCOUNT_LOCKED,
+        user.id,
+        user.email,
+        user.role,
+        AuditStatus.WARNING,
+        'Login attempt on locked account',
+      );
 
-    const refreshToken = uuid(); // secure random string
-    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
+      throw new UnauthorizedException(
+        `Account is locked. Try again later`,
+      );
+    }
 
-    await this.rtRepo.save({ token: refreshToken, user, expiresAt });
+    if (!user.isActive) {
+      await this.authAuditService.logAuthEvent(
+        AuditAction.ACCOUNT_DEACTIVATED,
+        user.id,
+        user.email,
+        user.role,
+        AuditStatus.WARNING,
+        'Login attempt on deactivated account',
+      );
 
-    await this.audit.log('LOGIN_SUCCESS', user.id, { ip: loginDto.ip });
+      throw new UnauthorizedException('Account is deactivated');
+    }
+    // Verify password
+    const isPasswordValid = await bcrypt.compare(password, user.passwordHash);
+
+    if (!isPasswordValid) {
+      await this.authAuditService.logLoginFailed(
+        user.email,
+        'Invalid password',
+      );
+
+      await this.handleFailedLogin(user);
+      throw new UnauthorizedException('Invalid credentials');
+    }
+
+    // Reset failed attempts on successful login
+    if (user.failedLoginAttempts > 0) {
+      await this.usersService.resetFailedAttempts(user.id);
+    }
+
+    // Update last login
+    await this.usersService.updateLastLogin(user.id);
+
+    return user;
+  }
+
+  private async generateAndStoreTokens(user: User): Promise<{ accessToken: string; refreshToken: string }> {
+    const payload = { 
+      sub: user.id, 
+      email: user.email, 
+      username: user.username, 
+      role: user.role 
+    };
+
+    const accessToken = this.jwtService.sign(payload, {
+      expiresIn: this.configService.get<number>('security.jwtExpiresIn', 3600),
+    });
+
+    const refreshToken = this.jwtService.sign(payload, {
+      secret: this.configService.get<string>('security.jwtRefreshSecret'),
+      expiresIn: this.configService.get<number>('security.jwtRefreshExpiresIn', 604800),
+    });
+
+    // Store hashed refresh token in DB
+    await this.usersService.setCurrentRefreshToken(user.id, refreshToken);
 
     return { accessToken, refreshToken };
   }
 
-  async logout(userId: number, refreshToken: string) {
-    await this.rtRepo.delete({ token: refreshToken, user: { id: userId } });
-    await this.audit.log('LOGOUT', userId, {});
+  async login(loginDto: LoginDto): Promise<AuthResponse> {
+    const user = await this.validateUser(loginDto.email, loginDto.password);
+
+    await this.authAuditService.logLoginSuccess(
+      user.id,
+      user.email,
+      user.role,
+    );
+
+    const { accessToken, refreshToken } = await this.generateAndStoreTokens(user);
+
+    return {
+      access_token: accessToken,
+      refresh_token: refreshToken,
+      user: {
+        id: user.id,
+        email: user.email,
+        username: user.username,
+        role: user.role,
+        isActive: user.isActive,
+      },
+    };
   }
 
-  async refresh(refreshToken: string) {
-    const rt = await this.rtRepo.findOne({
-      where: { token: refreshToken },
-      relations: ['user'],
-    });
 
-    if (!rt || rt.expiresAt < new Date()) {
-      await this.audit.log('REFRESH_FAILED', rt?.user?.id, { refreshToken });
-      throw new UnauthorizedException('Refresh token missing or expired');
+  async register(registerDto: RegisterDto): Promise<AuthResponse> {
+    const user = await this.usersService.create(registerDto);
+
+    await this.authAuditService.logAuthEvent(
+      AuditAction.REGISTER,
+      user.id,
+      user.email,
+      user.role,
+      AuditStatus.SUCCESS,
+    );
+
+    const { accessToken, refreshToken } = await this.generateAndStoreTokens(user);
+
+    return {
+      access_token: accessToken,
+      refresh_token: refreshToken,
+      user: {
+        id: user.id,
+        email: user.email,
+        username: user.username,
+        role: user.role,
+        isActive: user.isActive,
+      },
+    };
+  }
+
+
+  async refreshToken(
+    refreshToken: string,
+  ): Promise<{ access_token: string; refresh_token: string }> {
+
+    if (!refreshToken) {
+      throw new BadRequestException('Refresh token is required');
     }
 
-    // remove used REFRESH token => rotation
-    await this.rtRepo.delete(rt.id);
+    let payload: any;
 
-    // create new pair
-    const accessToken = this.jwtService.sign({ sub: rt.user.id, roles: rt.user.roles.map(r => r.name) });
-    const newRefreshToken = uuid();
-    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+    // Invalid or tampered refresh token
+    try {
+      payload = this.jwtService.verify(refreshToken, {
+      secret: this.configService.get<string>('security.jwtRefreshSecret'),
+      });
+    } catch (error) {
+      await this.authAuditService.logAuthEvent(
+        AuditAction.REFRESH_TOKEN_FAILED,
+        undefined,
+        undefined,
+        undefined,
+        AuditStatus.FAILED,
+        'Invalid or expired refresh token',
+      );
 
-    await this.rtRepo.save({ token: newRefreshToken, user: rt.user, expiresAt });
-    await this.audit.log('REFRESH_SUCCESS', rt.user.id, {});
+      throw new UnauthorizedException('Invalid refresh token');
+    }
 
-    return { accessToken, refreshToken: newRefreshToken };
+    const userId = payload.sub;
+    const user = await this.usersService.findOneWithPassword(userId);
+
+    // User not found or inactive
+    if (!user || !user.isActive) {
+      await this.authAuditService.logAuthEvent(
+        AuditAction.REFRESH_TOKEN_FAILED,
+        user?.id,
+        user?.email,
+        user?.role,
+        AuditStatus.FAILED,
+        'User not found or inactive during refresh',
+      );
+
+      throw new UnauthorizedException('User not found or inactive');
+    }
+
+    // Refresh token mismatch (rotation protection)
+    const isRefreshTokenValid = await bcrypt.compare(
+      refreshToken,
+      user.refreshTokenHash ?? '',
+    );
+
+    if (!isRefreshTokenValid) {
+      await this.authAuditService.logAuthEvent(
+        AuditAction.TOKEN_REVOKED,
+        user.id,
+        user.email,
+        user.role,
+        AuditStatus.WARNING,
+        'Refresh token reuse or mismatch detected',
+      );
+
+      throw new UnauthorizedException('Invalid refresh token');
+    }
+
+    // Successful refresh
+    const tokens = await this.generateAndStoreTokens(user);
+
+    await this.authAuditService.logAuthEvent(
+      AuditAction.REFRESH_TOKEN,
+      user.id,
+      user.email,
+      user.role,
+      AuditStatus.SUCCESS,
+    );
+
+    return {
+      access_token: tokens.accessToken,
+      refresh_token: tokens.refreshToken,
+    };
+  }
+  private async handleFailedLogin(user: User): Promise<void> {
+    const newAttempts = user.failedLoginAttempts + 1;
+
+    if (newAttempts >= this.maxLoginAttempts) {
+      await this.usersService.lockAccount(user.id, this.lockDurationMinutes);
+
+      await this.authAuditService.logAccountLocked(
+        user.id,
+        user.email,
+        undefined,
+        `Locked after ${newAttempts} failed attempts`,
+      );
+
+      this.logger.warn(`Account ${user.email} locked`);
+    } else {
+      await this.usersService.incrementFailedAttempts(user.id);
+    }
   }
 
-  async validateRefreshToken(token: string) {
-    const rt = await this.rtRepo.findOne({ where: { token }, relations: ['user', 'user.roles'] });
-    if (!rt) return null;
-    return rt.user;
+  async logout(userId: string): Promise<void> {
+    await this.usersService.removeRefreshToken(userId);
+    
+    // If you still want to log the logout, you'd need to fetch the user first
+    const user = await this.usersService.findOne(userId);
+    if (user) {
+      await this.authAuditService.logLogout(
+        user.id,
+        user.email,
+        user.role,
+      );
+      this.logger.log(`User ${user.id} logged out`);
+    }
   }
+
+
 }
