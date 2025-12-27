@@ -1,4 +1,4 @@
-import { UserRole, Permission } from '../../common/enums/role-permission.enum';
+import { UserRole, Permission } from '../enums/role-permission.enum';
 
 export const rolePermissions: Record<UserRole, Permission[]> = {
   [UserRole.ADMIN]: [
