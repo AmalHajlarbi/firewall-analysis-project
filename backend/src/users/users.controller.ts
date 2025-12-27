@@ -30,9 +30,7 @@ import { Permission, UserRole } from '../common/enums/role-permission.enum';
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
-  // --------------------------------------------------------------------------------
   // CREATE & LIST USERS
-  // --------------------------------------------------------------------------------
 
   @Post()
   @Permissions(Permission.MANAGE_USERS)
@@ -53,9 +51,8 @@ export class UsersController {
     return this.usersService.findAll(page, limit);
   }
 
-  // --------------------------------------------------------------------------------
-  // PROFILE
-  // --------------------------------------------------------------------------------
+   
+  // PROFILE 
 
   @Get('profile')
   @ApiOperation({ summary: 'Get current user profile (requires VIEW_USERS permission)' })
@@ -63,9 +60,7 @@ export class UsersController {
     return this.usersService.findOne(user.id);
   }
 
-  // --------------------------------------------------------------------------------
   // READ / UPDATE / DELETE BY ID
-  // --------------------------------------------------------------------------------
 
   @Get(':id')
   @Permissions(Permission.VIEW_USERS)
@@ -100,9 +95,7 @@ export class UsersController {
     return { message: 'User restored', user };
   }
 
-  // --------------------------------------------------------------------------------
   // ROLE MANAGEMENT
-  // --------------------------------------------------------------------------------
 
   @Patch(':id/role')
   @Permissions(Permission.MANAGE_USERS)
@@ -116,9 +109,7 @@ export class UsersController {
     return { message: 'User role updated', user: updated };
   }
 
-  // --------------------------------------------------------------------------------
   // PASSWORD MANAGEMENT
-  // --------------------------------------------------------------------------------
 
   @Post('change-password')
   @ApiOperation({ summary: 'Change own password (requires MANAGE_USERS permission)' })
@@ -141,9 +132,7 @@ export class UsersController {
     return { message: 'Password changed' };
   }
 
-  // --------------------------------------------------------------------------------
   // LOCK / UNLOCK
-  // --------------------------------------------------------------------------------
 
   @Post(':id/lock')
   @Permissions(Permission.MANAGE_USERS)

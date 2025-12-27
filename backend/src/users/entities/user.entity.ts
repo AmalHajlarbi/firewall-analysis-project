@@ -34,9 +34,6 @@ export class User extends SoftDeleteEntity {
   refreshTokenHash?: string | null;
 
 
-  //@Column({ default: false })
-  //isVerified: boolean;
-
   @Column({ type: 'timestamp', nullable: true })
   lastLogin: Date | null;
 

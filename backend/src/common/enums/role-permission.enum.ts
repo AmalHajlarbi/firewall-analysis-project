@@ -18,6 +18,6 @@ export enum Permission {
   //VIEW_DASHBOARD = 'view_dashboard',
   
   // System
-  MANAGE_SYSTEM = 'manage_system',
+  //MANAGE_SYSTEM = 'manage_system',
 }
 

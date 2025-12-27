@@ -15,7 +15,6 @@ import { User } from '../users/entities/user.entity';
 import { UserRole } from '../common/enums/role-permission.enum';
 import { AuthAuditService } from '../authaudit/authaudit.service';
 import { AuditAction, AuditStatus } from '../common/enums/authaudit.enum';
-import { AuthenticatedUser } from './interfaces/authenticated-request.interface';
 
 export interface AuthResponse {
   access_token: string;
