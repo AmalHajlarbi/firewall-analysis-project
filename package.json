@@ -23,9 +23,7 @@
     "db:reset": "npm run db:drop && npm run db:create",
     "migration:generate": "cross-env NODE_ENV=development npx typeorm migration:generate -n",
     "migration:run": "cross-env NODE_ENV=development npx typeorm migration:run",
-    "migration:revert": "cross-env NODE_ENV=development npx typeorm migration:revert",
-    "seed:admin": "cross-env NODE_ENV=development npx ts-node src/scripts/seed-admin.ts",
-    "seed:test": "cross-env NODE_ENV=test npx ts-node src/scripts/seed-admin.ts"
+    "migration:revert": "cross-env NODE_ENV=development npx typeorm migration:revert"
   },
   "dependencies": {
     "@nestjs/common": "^11.1.10",

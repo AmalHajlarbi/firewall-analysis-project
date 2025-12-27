@@ -9,13 +9,13 @@ export enum Permission {
   VIEW_USERS = 'view_users',
   
   // Log management
-  UPLOAD_LOGS = 'upload_logs',
-  VIEW_LOGS = 'view_logs',
-  ANALYZE_LOGS = 'analyze_logs',
-  EXPORT_LOGS = 'export_logs',
+  //UPLOAD_LOGS = 'upload_logs',
+  //VIEW_LOGS = 'view_logs',
+  //ANALYZE_LOGS = 'analyze_logs',
+  //EXPORT_LOGS = 'export_logs',
   
   // Dashboard
-  VIEW_DASHBOARD = 'view_dashboard',
+  //VIEW_DASHBOARD = 'view_dashboard',
   
   // System
   MANAGE_SYSTEM = 'manage_system',

@@ -20,7 +20,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     // Validate secret before calling super()
     if (!secret) {
       // Can't use this.logger here, use console.error instead
-      console.error('❌ JWT_SECRET is not configured in environment variables');
+      console.error('JWT_SECRET is not configured in environment variables');
       throw new Error('JWT secret is not configured');
     }
     

@@ -1,4 +1,3 @@
-// src/auth/auth.service.ts
 import { 
   Injectable, 
   UnauthorizedException, 
@@ -12,9 +11,11 @@ import { ConfigService } from '@nestjs/config';
 import { UsersService } from '../users/users.service';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
-import { AuthPayload } from './interfaces/auth-payload.interface';
 import { User } from '../users/entities/user.entity';
 import { UserRole } from '../common/enums/role-permission.enum';
+import { AuthAuditService } from '../authaudit/authaudit.service';
+import { AuditAction, AuditStatus } from '../common/enums/authaudit.enum';
+import { AuthenticatedUser } from './interfaces/authenticated-request.interface';
 
 export interface AuthResponse {
   access_token: string;
@@ -38,6 +39,7 @@ export class AuthService {
     private readonly usersService: UsersService,
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
+    private readonly authAuditService: AuthAuditService,
   ) {
     this.maxLoginAttempts = this.configService.get<number>('security.maxLoginAttempts', 5);
     this.lockDurationMinutes = this.configService.get<number>('security.lockDurationMinutes', 15);
@@ -47,27 +49,50 @@ export class AuthService {
     const user = await this.usersService.findByEmail(email);
     
     if (!user) {
-        this.logger.warn(`Failed login attempt for non-existent email: ${email}`);
-        throw new UnauthorizedException('Invalid credentials');
-    }
+      await this.authAuditService.logLoginFailed(
+        email,
+        'User not found',
+      );
 
+      throw new UnauthorizedException('Invalid credentials');
+    }
     // Check if account is locked
     if (user.lockedUntil && user.lockedUntil > new Date()) {
-      const remainingMinutes = Math.ceil((user.lockedUntil.getTime() - Date.now()) / 60000);
+      await this.authAuditService.logAuthEvent(
+        AuditAction.ACCOUNT_LOCKED,
+        user.id,
+        user.email,
+        user.role,
+        AuditStatus.WARNING,
+        'Login attempt on locked account',
+      );
+
       throw new UnauthorizedException(
-        `Account is locked. Try again in ${remainingMinutes} minutes`,
+        `Account is locked. Try again later`,
       );
     }
 
-    // Check if account is active
     if (!user.isActive) {
+      await this.authAuditService.logAuthEvent(
+        AuditAction.ACCOUNT_DEACTIVATED,
+        user.id,
+        user.email,
+        user.role,
+        AuditStatus.WARNING,
+        'Login attempt on deactivated account',
+      );
+
       throw new UnauthorizedException('Account is deactivated');
     }
-
     // Verify password
     const isPasswordValid = await bcrypt.compare(password, user.passwordHash);
-    
+
     if (!isPasswordValid) {
+      await this.authAuditService.logLoginFailed(
+        user.email,
+        'Invalid password',
+      );
+
       await this.handleFailedLogin(user);
       throw new UnauthorizedException('Invalid credentials');
     }
@@ -107,57 +132,131 @@ export class AuthService {
   }
 
   async login(loginDto: LoginDto): Promise<AuthResponse> {
-  const user = await this.validateUser(loginDto.email, loginDto.password);
-  const { accessToken, refreshToken } = await this.generateAndStoreTokens(user);
-  
-  return {
-    access_token: accessToken,
-    refresh_token: refreshToken,
-    user: { id: user.id, email: user.email, username: user.username, role: user.role, isActive: user.isActive },
-  };
-}
+    const user = await this.validateUser(loginDto.email, loginDto.password);
 
-async register(registerDto: RegisterDto): Promise<AuthResponse> {
-  const user = await this.usersService.create(registerDto);
-  const { accessToken, refreshToken } = await this.generateAndStoreTokens(user);
-  
-  return {
-    access_token: accessToken,
-    refresh_token: refreshToken,
-    user: { id: user.id, email: user.email, username: user.username, role: user.role, isActive: user.isActive },
-  };
-}
+    await this.authAuditService.logLoginSuccess(
+      user.id,
+      user.email,
+      user.role,
+    );
 
-  async refreshToken(refreshToken: string): Promise<{ access_token: string; refresh_token: string }> {
+    const { accessToken, refreshToken } = await this.generateAndStoreTokens(user);
+
+    return {
+      access_token: accessToken,
+      refresh_token: refreshToken,
+      user: {
+        id: user.id,
+        email: user.email,
+        username: user.username,
+        role: user.role,
+        isActive: user.isActive,
+      },
+    };
+  }
+
+
+  async register(registerDto: RegisterDto): Promise<AuthResponse> {
+    const user = await this.usersService.create(registerDto);
+
+    await this.authAuditService.logAuthEvent(
+      AuditAction.REGISTER,
+      user.id,
+      user.email,
+      user.role,
+      AuditStatus.SUCCESS,
+    );
+
+    const { accessToken, refreshToken } = await this.generateAndStoreTokens(user);
+
+    return {
+      access_token: accessToken,
+      refresh_token: refreshToken,
+      user: {
+        id: user.id,
+        email: user.email,
+        username: user.username,
+        role: user.role,
+        isActive: user.isActive,
+      },
+    };
+  }
+
+
+  async refreshToken(
+    refreshToken: string,
+  ): Promise<{ access_token: string; refresh_token: string }> {
+
     if (!refreshToken) {
       throw new BadRequestException('Refresh token is required');
     }
 
     let payload: any;
 
+    // Invalid or tampered refresh token
     try {
       payload = this.jwtService.verify(refreshToken, {
-        secret: this.configService.get<string>('security.jwtRefreshSecret'),
+      secret: this.configService.get<string>('security.jwtRefreshSecret'),
       });
     } catch (error) {
+      await this.authAuditService.logAuthEvent(
+        AuditAction.REFRESH_TOKEN_FAILED,
+        undefined,
+        undefined,
+        undefined,
+        AuditStatus.FAILED,
+        'Invalid or expired refresh token',
+      );
+
       throw new UnauthorizedException('Invalid refresh token');
     }
 
     const userId = payload.sub;
     const user = await this.usersService.findOneWithPassword(userId);
 
+    // User not found or inactive
     if (!user || !user.isActive) {
+      await this.authAuditService.logAuthEvent(
+        AuditAction.REFRESH_TOKEN_FAILED,
+        user?.id,
+        user?.email,
+        user?.role,
+        AuditStatus.FAILED,
+        'User not found or inactive during refresh',
+      );
+
       throw new UnauthorizedException('User not found or inactive');
     }
 
-    // Validate the refresh token matches what's stored
-    const isRefreshTokenValid = await bcrypt.compare(refreshToken, user.refreshTokenHash ?? '');
+    // Refresh token mismatch (rotation protection)
+    const isRefreshTokenValid = await bcrypt.compare(
+      refreshToken,
+      user.refreshTokenHash ?? '',
+    );
+
     if (!isRefreshTokenValid) {
+      await this.authAuditService.logAuthEvent(
+        AuditAction.TOKEN_REVOKED,
+        user.id,
+        user.email,
+        user.role,
+        AuditStatus.WARNING,
+        'Refresh token reuse or mismatch detected',
+      );
+
       throw new UnauthorizedException('Invalid refresh token');
     }
 
-    // Generate new tokens using the extracted method
+    // Successful refresh
     const tokens = await this.generateAndStoreTokens(user);
+
+    await this.authAuditService.logAuthEvent(
+      AuditAction.REFRESH_TOKEN,
+      user.id,
+      user.email,
+      user.role,
+      AuditStatus.SUCCESS,
+    );
 
     return {
       access_token: tokens.accessToken,
@@ -166,22 +265,37 @@ async register(registerDto: RegisterDto): Promise<AuthResponse> {
   }
   private async handleFailedLogin(user: User): Promise<void> {
     const newAttempts = user.failedLoginAttempts + 1;
-    
+
     if (newAttempts >= this.maxLoginAttempts) {
-      // Lock account
       await this.usersService.lockAccount(user.id, this.lockDurationMinutes);
-      this.logger.warn(`Account ${user.email} locked due to ${newAttempts} failed attempts`);
+
+      await this.authAuditService.logAccountLocked(
+        user.id,
+        user.email,
+        undefined,
+        `Locked after ${newAttempts} failed attempts`,
+      );
+
+      this.logger.warn(`Account ${user.email} locked`);
     } else {
-      // Increment failed attempts
       await this.usersService.incrementFailedAttempts(user.id);
-      this.logger.warn(`Failed login attempt ${newAttempts}/${this.maxLoginAttempts} for ${user.email}`);
     }
   }
 
   async logout(userId: string): Promise<void> {
-    // Remove stored refresh token
     await this.usersService.removeRefreshToken(userId);
-    this.logger.log(`User ${userId} logged out and refresh token removed`);
+    
+    // If you still want to log the logout, you'd need to fetch the user first
+    const user = await this.usersService.findOne(userId);
+    if (user) {
+      await this.authAuditService.logLogout(
+        user.id,
+        user.email,
+        user.role,
+      );
+      this.logger.log(`User ${user.id} logged out`);
+    }
   }
+
 
 }
