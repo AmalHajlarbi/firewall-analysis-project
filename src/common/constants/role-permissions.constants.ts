@@ -10,13 +10,11 @@ export const rolePermissions: Record<UserRole, Permission[]> = {
     Permission.EXPORT_LOGS,
     Permission.VIEW_DASHBOARD,
     Permission.MANAGE_SYSTEM,
-    Permission.CHANGE_OWN_PASSWORD,
   ],
   [UserRole.ANALYST]: [
     Permission.VIEW_LOGS,
     Permission.ANALYZE_LOGS,
     Permission.EXPORT_LOGS,
     Permission.VIEW_DASHBOARD,
-    Permission.CHANGE_OWN_PASSWORD,
   ],
 };

@@ -121,7 +121,6 @@ export class UsersController {
   // --------------------------------------------------------------------------------
 
   @Post('change-password')
-  @Permissions(Permission.CHANGE_OWN_PASSWORD)
   @ApiOperation({ summary: 'Change own password (requires MANAGE_USERS permission)' })
   async changeOwnPassword(
     @CurrentUser() user: any,
