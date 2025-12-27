@@ -1,6 +1,5 @@
 import { FirewallLogParser } from './firewall-log.parser';
 import { FirewallType } from '../enums/firewall-type.enum';
-import { FirewallLog } from '../interfaces/firewall-log.interface';
 import { ParsedLogDto } from '../dto/parsed-log.dto';
 import { plainToInstance } from 'class-transformer';
 
