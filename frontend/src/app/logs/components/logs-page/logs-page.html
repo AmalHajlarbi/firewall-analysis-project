@@ -10,18 +10,49 @@
 
       <!-- 🔵 IMPORTATION DES LOGS -->
       <div class="row g-3 mb-4 align-items-end">
-        <div class="col-md-6">
+        <div class="col-md-4">
           <input
             type="file"
             class="form-control"
             (change)="onFileSelected($event)"
           />
         </div>
+
+        <div class="col-md-3">
+          <select
+            class="form-select"
+            (change)="onFirewallTypeSelected($event)"
+          >
+            <option value="" disabled selected>-- Type de firewall --</option>
+            <option *ngFor="let type of supportedTypes" [value]="type">{{ type }}</option>
+          </select>
+        </div>
+
         <div class="col-md-2">
-          <button class="btn btn-success w-100" (click)="uploadLogs()">
-            Importer
+          <button 
+            class="btn btn-success w-100" 
+            (click)="uploadLogs()"
+            [disabled]="isUploading"
+          >
+            {{ isUploading ? 'Upload en cours...' : 'Importer' }}
           </button>
         </div>
+      </div>
+
+      <!-- 🔵 RÉSULTATS DE L'UPLOAD -->
+      <div *ngIf="uploadResult" class="mb-4">
+        <p><strong>Logs traités :</strong> {{ uploadResult.processed }}</p>
+        <p><strong>Logs ignorés :</strong> {{ uploadResult.ignored }}</p>
+        <div *ngIf="uploadResult.warning?.length">
+          <p><strong>Avertissements :</strong></p>
+          <ul>
+            <li *ngFor="let w of uploadResult.warning">{{ w }}</li>
+          </ul>
+        </div>
+      </div>
+
+      <div *ngIf="errorMessage" class="alert alert-danger mb-4">
+        {{ errorMessage }}
       </div>
 
       <!-- 🔵 FILTRES & RECHERCHE -->
@@ -34,12 +65,7 @@
             placeholder="Rechercher par IP ou message"
             [(ngModel)]="filters.search"
             #searchField="ngModel"
-            required
-            minlength="1"
           />
-          <div *ngIf="searchField.invalid && searchField.touched" class="text-danger small mt-1">
-            Veuillez saisir au moins un caractère
-          </div>
         </div>
 
         <div class="col-md-3">
@@ -73,7 +99,7 @@
         </div>
 
         <div class="col-md-1">
-          <button type="submit" class="btn btn-primary w-100" [disabled]="filterForm.invalid">
+          <button type="submit" class="btn btn-primary w-100">
             Filtrer
           </button>
         </div>
@@ -115,6 +141,22 @@
           </tbody>
         </table>
       </div>
+
+      <!-- 🔵 PAGINATION (simple) -->
+      <nav *ngIf="total > limit" class="mt-3">
+        <ul class="pagination justify-content-center">
+          <li class="page-item" [class.disabled]="page === 1">
+            <button class="page-link" (click)="changePage(page - 1)">Préc</button>
+          </li>
+          <li class="page-item disabled">
+  <span class="page-link">{{ page }} / {{ getTotalPages() }}</span>
+</li>
+
+          <li class="page-item" [class.disabled]="page >= total / limit">
+            <button class="page-link" (click)="changePage(page + 1)">Suiv</button>
+          </li>
+        </ul>
+      </nav>
 
     </div>
   </div>
