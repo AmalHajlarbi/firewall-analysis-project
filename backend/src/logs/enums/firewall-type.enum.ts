@@ -1,0 +1,4 @@
+export enum FirewallType {
+  WINDOWS_DEFENDER = 'WINDOWS_DEFENDER',
+  FORTIGATE = 'FORTIGATE',
+}

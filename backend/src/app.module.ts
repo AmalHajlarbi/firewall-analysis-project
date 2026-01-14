@@ -1,34 +1,41 @@
 import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { SearchModule } from './search/search.module';
-import { AnalysisModule } from './analysis/analysis.module';
-import { ReportsModule } from './reports/reports.module';
+//import { SearchModule } from './search/search.module';
+//import { AnalysisModule } from './analysis/analysis.module';
+//import { ReportsModule } from './reports/reports.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { AuthModule } from './auth/auth.module';
-import { AuditModule } from './audit/audit.module';
-import { UserModule } from './users/users.module';
-import { ConfigModule} from '@nestjs/config';
+//import { AuthModule } from './auth/auth.module';
+//import { AuditModule } from './audit/audit.module';
+//import { UserModule } from './users/users.module';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { LogsModule } from './logs/logs.module';
 
 @Module({
   imports: [ 
     ConfigModule.forRoot({ isGlobal: true }), // ✅ Loads .env variables
-    TypeOrmModule.forRoot({ // ✅ Configure database connection here
-      type: 'mysql',
-      host: process.env.MYSQL_HOST,
-      port: parseInt(process.env.MYSQL_PORT) || 3306,
-      username: process.env.MYSQL_USER,
-      password: process.env.MYSQL_PASSWORD,
-      database: process.env.MYSQL_DB,
-      entities: [__dirname + '/**/*.entity{.ts,.js}'],
-      synchronize: process.env.NODE_ENV !== 'production', // Be careful in prod!
+    TypeOrmModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: async (configService: ConfigService) => ({
+        type: 'mysql',
+        host: configService.get<string>('DB_HOST'),
+        port: configService.get<number>('DB_PORT'),
+        username: configService.get<string>('DB_USER'),
+        password: configService.get<string>('DB_PASS'),
+        database: configService.get<string>('DB_NAME'),
+        entities: [__dirname + '/**/*.entity{.ts,.js}'],
+        synchronize: true, // seulement dev
+        logging: true,
+      }),
     }),
-    AuthModule,
-    UserModule,
-    AuditModule,
-    SearchModule,
-    AnalysisModule,
-    ReportsModule,
+    //AuthModule,
+    //UserModule,
+    //AuditModule,
+    //SearchModule,
+    //AnalysisModule,
+    //ReportsModule,
+    LogsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
