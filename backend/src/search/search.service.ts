@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
 
 import { Repository } from 'typeorm';
-import { FirewallLogEntity } from 'src/logs/entities/firewall-log.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { SearchLogsDto } from './dto/search-logs.dto';
 import { FirewallLogEntity } from 'src/logs/entities/firewall-log.entity';
