@@ -3,13 +3,12 @@ import { CreateAnalysisDto } from './dto/create-analysis.dto';
 import { UpdateAnalysisDto } from './dto/update-analysis.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Log } from 'src/logs/entities/log.entity';
-
+import { FirewallLogEntity } from 'src/logs/entities/firewall-log.entity';
 @Injectable()
 export class AnalysisService {
    constructor(
-    @InjectRepository(Log)
-    private readonly repo: Repository<Log>,
+    @InjectRepository(FirewallLogEntity)
+    private readonly repo: Repository<FirewallLogEntity>,
   ) {}
 
   async statistics() {

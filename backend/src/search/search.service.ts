@@ -1,14 +1,14 @@
 import { Injectable } from '@nestjs/common';
-import { Log } from 'src/logs/entities/log.entity';
 import { Repository } from 'typeorm';
+import { FirewallLogEntity } from 'src/logs/entities/firewall-log.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { SearchLogsDto } from './dto/search-logs.dto';
 
 @Injectable()
 export class SearchService {
     constructor(
-    @InjectRepository(Log)
-    private readonly logRepo: Repository<Log>,
+    @InjectRepository(FirewallLogEntity)
+    private readonly logRepo: Repository<FirewallLogEntity>,
   ) {}
 
   async search(dto: SearchLogsDto) {

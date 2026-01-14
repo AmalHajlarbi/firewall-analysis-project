@@ -1,7 +1,6 @@
 import PDFDocument from 'pdfkit';
-import { Log } from 'src/logs/entities/log.entity';
-
-export function generatePdf(logs: Log[]): Promise<Buffer> {
+import { FirewallLogEntity } from 'src/logs/entities/firewall-log.entity';
+export function generatePdf(logs: FirewallLogEntity[]): Promise<Buffer> {
   return new Promise((resolve, reject) => {
     try {
       const doc = new PDFDocument();

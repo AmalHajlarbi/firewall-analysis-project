@@ -1,6 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { Log } from 'src/logs/entities/log.entity';
-import { InjectRepository } from '@nestjs/typeorm';
+import { FirewallLogEntity } from 'src/logs/entities/firewall-log.entity';import { InjectRepository } from '@nestjs/typeorm';
 import {Repository} from 'typeorm' ;
 import { ReportQueryDto } from './dto/report-query.dto';
 import { exportToCsv } from './exporters/csv.exporter';
@@ -9,8 +8,8 @@ import { generatePdf } from './exporters/pdf.exporter';
 @Injectable()
 export class ReportsService {
     constructor(
-    @InjectRepository(Log)
-    private readonly logRepository: Repository<Log>,
+    @InjectRepository(FirewallLogEntity)
+    private readonly logRepository: Repository<FirewallLogEntity>,
   ) {}
  
   

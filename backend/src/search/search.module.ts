@@ -1,11 +1,11 @@
 import { Module } from '@nestjs/common';
 import { SearchService } from './search.service';
 import { SearchController } from './search.controller';
-import { Log } from 'src/logs/entities/log.entity';
+import { FirewallLogEntity } from 'src/logs/entities/firewall-log.entity';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
 @Module({
-   imports: [TypeOrmModule.forFeature([Log])],
+   imports: [TypeOrmModule.forFeature([FirewallLogEntity])],
   controllers: [SearchController],
   providers: [SearchService],
 })
