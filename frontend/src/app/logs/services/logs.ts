@@ -4,39 +4,33 @@ import { Observable } from 'rxjs';
 
 export enum FirewallType {
   WINDOWS_DEFENDER = 'WINDOWS_DEFENDER',
-  FORTIGATE = 'FORTIGATE'
-  // Ajouter d'autres types supportés si nécessaire
+  FORTIGATE = 'FORTIGATE',
+  // Ajouter d'autres types plus tard
 }
 
 export interface UploadResponse {
-  processed: number;
-  ignored: number;
-  warning?: string[];
+  message: string;
+  linesProcessed: number;
+  linesIgnored: number;
+  warning?: string;
 }
 
 @Injectable({
   providedIn: 'root'
 })
-export class Logs{
-
-  private apiUrl = 'http://localhost:3000/logs'; // URL du backend
+export class Logs {
+  private apiUrl = 'http://localhost:3000/logs';
 
   constructor(private http: HttpClient) {}
 
-  /**
-   * Upload d'un fichier de logs avec le type de firewall choisi
-   */
   uploadLog(file: File, firewallType: FirewallType): Observable<UploadResponse> {
     const formData = new FormData();
     formData.append('file', file);
-    formData.append('firewallType', firewallType);
+    formData.append('firewallType', firewallType.toString()); // ⚡ Must be string
 
     return this.http.post<UploadResponse>(`${this.apiUrl}/upload`, formData);
   }
 
-  /**
-   * Récupère la liste des types de firewall supportés par le backend
-   */
   getSupportedFirewallTypes(): Observable<FirewallType[]> {
     return this.http.get<FirewallType[]>(`${this.apiUrl}/supported-types`);
   }

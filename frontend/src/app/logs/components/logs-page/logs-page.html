@@ -1,114 +1,64 @@
 <div class="container py-4">
   <div class="card shadow-sm">
-
-    <!-- Header -->
     <div class="card-header bg-white">
       <h4 class="mb-0">Firewall Logs</h4>
     </div>
-
     <div class="card-body">
 
-      <!-- 🔵 IMPORTATION DES LOGS -->
-      <div class="row g-3 mb-4 align-items-end">
+      <!-- Upload -->
+      <h5 class="mb-3">Importation des logs firewall</h5>
+      <div class="row g-3 align-items-end mb-4">
+
         <div class="col-md-4">
-          <input
-            type="file"
-            class="form-control"
-            (change)="onFileSelected($event)"
-          />
+          <label class="form-label">Fichier de logs</label>
+          <input type="file" class="form-control" (change)="onFileSelected($event)" />
         </div>
 
-        <div class="col-md-3">
-          <select
-            class="form-select"
-            (change)="onFirewallTypeSelected($event)"
-          >
-            <option value="" disabled selected>-- Type de firewall --</option>
-            <option *ngFor="let type of supportedTypes" [value]="type">{{ type }}</option>
+        <div class="col-md-4">
+          <label class="form-label">Type de firewall</label>
+          <select class="form-select" [(ngModel)]="firewallType" name="firewallType">
+            <option [ngValue]="null" disabled>-- Sélectionner un type --</option>
+            <option *ngFor="let type of supportedTypes" [ngValue]="type">{{ type }}</option>
           </select>
         </div>
 
         <div class="col-md-2">
-          <button 
-            class="btn btn-success w-100" 
-            (click)="uploadLogs()"
-            [disabled]="isUploading"
-          >
-            {{ isUploading ? 'Upload en cours...' : 'Importer' }}
-          </button>
+          <button
+  type="button"
+  class="btn btn-success w-100"
+  (click)="uploadLogs()"
+  [disabled]="isUploading || !selectedFile || !firewallType"
+>
+  {{ isUploading ? 'Upload en cours...' : 'Importer' }}
+</button>
+
+        </div>
+
+      </div>
+
+      <!-- Debug upload -->
+      <pre class="mt-3 bg-light p-2">uploadResult = {{ uploadResult | json }}</pre>
+
+      <!-- Résultat -->
+      <div *ngIf="uploadResult" class="alert alert-success">
+        <p><strong>{{ uploadResult.message }}</strong></p>
+        <p>Lignes traitées : {{ uploadResult.linesProcessed }}</p>
+        <p>Lignes ignorées : {{ uploadResult.linesIgnored }}</p>
+        <div *ngIf="uploadResult.warning" class="text-warning">
+          ⚠️ {{ uploadResult.warning }}
         </div>
       </div>
 
-      <!-- 🔵 RÉSULTATS DE L'UPLOAD -->
-      <div *ngIf="uploadResult" class="mb-4">
-        <p><strong>Logs traités :</strong> {{ uploadResult.processed }}</p>
-        <p><strong>Logs ignorés :</strong> {{ uploadResult.ignored }}</p>
-        <div *ngIf="uploadResult.warning?.length">
-          <p><strong>Avertissements :</strong></p>
-          <ul>
-            <li *ngFor="let w of uploadResult.warning">{{ w }}</li>
-          </ul>
-        </div>
-      </div>
+      <!-- Erreur -->
+      <div *ngIf="errorMessage" class="alert alert-danger">{{ errorMessage }}</div>
 
-      <div *ngIf="errorMessage" class="alert alert-danger mb-4">
-        {{ errorMessage }}
-      </div>
+      <hr />
 
-      <!-- 🔵 FILTRES & RECHERCHE -->
-      <form #filterForm="ngForm" (ngSubmit)="search()" class="row g-3 mb-4">
-        <div class="col-md-4">
-          <input
-            type="text"
-            name="search"
-            class="form-control"
-            placeholder="Rechercher par IP ou message"
-            [(ngModel)]="filters.search"
-            #searchField="ngModel"
-          />
-        </div>
-
-        <div class="col-md-3">
-          <select
-            class="form-select"
-            name="action"
-            [(ngModel)]="filters.action"
-          >
-            <option value="">Toutes les actions</option>
-            <option value="ALLOW">ALLOW</option>
-            <option value="DENY">DENY</option>
-          </select>
-        </div>
-
-        <div class="col-md-2">
-          <input
-            type="date"
-            name="from"
-            class="form-control"
-            [(ngModel)]="filters.from"
-          />
-        </div>
-
-        <div class="col-md-2">
-          <input
-            type="date"
-            name="to"
-            class="form-control"
-            [(ngModel)]="filters.to"
-          />
-        </div>
-
-        <div class="col-md-1">
-          <button type="submit" class="btn btn-primary w-100">
-            Filtrer
-          </button>
-        </div>
-      </form>
-
-      <!-- 🔵 TABLEAU DES LOGS -->
+      <!-- Tableau logs -->
+      <h5 class="mb-3">Logs</h5>
       <div class="table-responsive">
         <table class="table table-hover align-middle">
-          <thead>
+          <thead class="table-light">
             <tr>
               <th>Timestamp</th>
               <th>IP Source</th>
@@ -123,41 +73,18 @@
               <td>{{ log.srcIp }}</td>
               <td>{{ log.destIp }}</td>
               <td>
-                <span class="badge" [ngClass]="{
-                  'bg-success': log.action === 'ALLOW',
-                  'bg-danger': log.action === 'DENY'
-                }">
+                <span class="badge" [ngClass]="{'bg-success': log.action==='ALLOW','bg-danger': log.action==='DENY'}">
                   {{ log.action }}
                 </span>
               </td>
               <td>{{ log.protocol }}</td>
             </tr>
-
             <tr *ngIf="logs.length === 0">
-              <td colspan="5" class="text-center text-muted">
-                Aucun log trouvé
-              </td>
+              <td colspan="5" class="text-center text-muted">Aucun log trouvé</td>
             </tr>
           </tbody>
         </table>
       </div>
-
-      <!-- 🔵 PAGINATION (simple) -->
-      <nav *ngIf="total > limit" class="mt-3">
-        <ul class="pagination justify-content-center">
-          <li class="page-item" [class.disabled]="page === 1">
-            <button class="page-link" (click)="changePage(page - 1)">Préc</button>
-          </li>
-          <li class="page-item disabled">
-  <span class="page-link">{{ page }} / {{ getTotalPages() }}</span>
-</li>
-
-          <li class="page-item" [class.disabled]="page >= total / limit">
-            <button class="page-link" (click)="changePage(page + 1)">Suiv</button>
-          </li>
-        </ul>
-      </nav>
-
     </div>
   </div>
 </div>
