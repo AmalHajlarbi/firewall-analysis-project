@@ -1,17 +1,18 @@
-import { CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import { Column } from 'typeorm';
 
 export abstract class TimestampEntity {
-  @CreateDateColumn({
+  @Column({
     name: 'created_at',
     type: 'timestamp',
     default: () => 'CURRENT_TIMESTAMP',
   })
   createdAt: Date;
 
-  @UpdateDateColumn({
+  @Column({
     name: 'updated_at',
     type: 'timestamp',
     default: () => 'CURRENT_TIMESTAMP',
-    })
+    onUpdate: 'CURRENT_TIMESTAMP',
+  })
   updatedAt: Date;
 }

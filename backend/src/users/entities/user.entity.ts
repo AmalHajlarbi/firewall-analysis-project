@@ -30,7 +30,7 @@ export class User extends SoftDeleteEntity {
   @Column({ default: true })
   isActive: boolean;
   
-  @Column({ name: 'refresh_token_hash', nullable: true, select: false })
+  @Column({ name: 'refresh_token_hash',type: 'text', nullable: true, select: false })
   refreshTokenHash?: string | null;
 
 
