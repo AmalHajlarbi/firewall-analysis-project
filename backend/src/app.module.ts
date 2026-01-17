@@ -9,13 +9,17 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 //import { AuditModule } from './audit/audit.module';
 //import { UserModule } from './users/users.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+
+import { SearchModule } from './search/search.module';
+
 import { LogsModule } from './logs/logs.module';
+
 
 @Module({
   imports: [ 
     ConfigModule.forRoot({ isGlobal: true }), // ✅ Loads .env variables
     TypeOrmModule.forRootAsync({
-      imports: [ConfigModule],
+      imports: [ConfigModule,SearchModule],
       inject: [ConfigService],
       useFactory: async (configService: ConfigService) => ({
         type: 'mysql',

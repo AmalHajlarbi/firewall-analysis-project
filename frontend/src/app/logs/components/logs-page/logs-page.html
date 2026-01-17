@@ -5,7 +5,7 @@
     </div>
     <div class="card-body">
 
-      <!-- Upload -->
+      <!-- ================= Upload ================= -->
       <h5 class="mb-3">Importation des logs firewall</h5>
       <div class="row g-3 align-items-end mb-4">
 
@@ -24,22 +24,19 @@
 
         <div class="col-md-2">
           <button
-  type="button"
-  class="btn btn-success w-100"
-  (click)="uploadLogs()"
-  [disabled]="isUploading || !selectedFile || !firewallType"
->
-  {{ isUploading ? 'Upload en cours...' : 'Importer' }}
-</button>
-
+            type="button"
+            class="btn btn-success w-100"
+            (click)="uploadLogs()"
+            [disabled]="isUploading || !selectedFile || !firewallType">
+            {{ isUploading ? 'Upload en cours...' : 'Importer' }}
+          </button>
         </div>
 
       </div>
 
-      <!-- Debug upload -->
-      <pre class="mt-3 bg-light p-2">uploadResult = {{ uploadResult | json }}</pre>
+      
 
-      <!-- Résultat -->
+      <!-- Résultat upload -->
       <div *ngIf="uploadResult" class="alert alert-success">
         <p><strong>{{ uploadResult.message }}</strong></p>
         <p>Lignes traitées : {{ uploadResult.linesProcessed }}</p>
@@ -48,13 +45,82 @@
           ⚠️ {{ uploadResult.warning }}
         </div>
       </div>
+      
 
       <!-- Erreur -->
       <div *ngIf="errorMessage" class="alert alert-danger">{{ errorMessage }}</div>
 
       <hr />
 
-      <!-- Tableau logs -->
+      <!-- ================= Filtres ================= -->
+      <h5 class="mb-3">Filtrer les logs</h5>
+      <div class="row g-2 mb-3">
+
+        <div class="col-md-2">
+          <select class="form-select" [(ngModel)]="filters.action">
+            <option value="">Action</option>
+            <option value="ALLOW">ALLOW</option>
+            <option value="DROP">DROP</option>
+          </select>
+        </div>
+
+        <div class="col-md-2">
+          <select class="form-select" [(ngModel)]="filters.protocol">
+            <option value="">Protocole</option>
+            <option value="TCP">TCP</option>
+            <option value="UDP">UDP</option>
+            <option value="ICMP">ICMP</option>
+          </select>
+        </div>
+
+        <div class="col-md-2">
+          <input class="form-control" placeholder="Source IP" [(ngModel)]="filters.sourceIp" />
+        </div>
+
+        <div class="col-md-2">
+          <input class="form-control" placeholder="Destination IP" [(ngModel)]="filters.destinationIp" />
+        </div>
+
+        <div class="col-md-2">
+          <input class="form-control" type="number" placeholder="Port source" [(ngModel)]="filters.sourcePort" />
+        </div>
+
+        <div class="col-md-2">
+          <input class="form-control" type="number" placeholder="Port destination" [(ngModel)]="filters.destinationPort" />
+        </div>
+
+        <div class="col-md-2">
+          <select class="form-select" [(ngModel)]="filters.firewallType">
+            <option value="">Type FW</option>
+            <option *ngFor="let type of supportedTypes" [ngValue]="type">{{ type }}</option>
+          </select>
+        </div>
+
+        <div class="col-md-2">
+          <select class="form-select" [(ngModel)]="filters.direction">
+            <option value="">Direction</option>
+            <option value="SEND">SEND</option>
+            <option value="RECEIVE">RECEIVE</option>
+            <option value="INBOUND">INBOUND</option>
+            <option value="OUTBOUND">OUTBOUND</option>
+          </select>
+        </div>
+
+        <div class="col-md-2">
+          <input class="form-control" type="datetime-local" placeholder="De" [(ngModel)]="filters.from" />
+        </div>
+
+        <div class="col-md-2">
+          <input class="form-control" type="datetime-local" placeholder="À" [(ngModel)]="filters.to" />
+        </div>
+
+        <div class="col-md-2">
+          <button class="btn btn-primary w-100" (click)="search()">Rechercher</button>
+        </div>
+
+      </div>
+
+      <!-- ================= Tableau logs ================= -->
       <h5 class="mb-3">Logs</h5>
       <div class="table-responsive">
         <table class="table table-hover align-middle">
@@ -65,26 +131,54 @@
               <th>IP Destination</th>
               <th>Action</th>
               <th>Protocole</th>
+              <th>Port Source</th>
+              <th>Port Destination</th>
+              <th>Type Firewall</th>
+              <th>Direction</th>
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let log of logs; trackBy: trackById">
-              <td>{{ log.timestamp }}</td>
-              <td>{{ log.srcIp }}</td>
-              <td>{{ log.destIp }}</td>
-              <td>
-                <span class="badge" [ngClass]="{'bg-success': log.action==='ALLOW','bg-danger': log.action==='DENY'}">
-                  {{ log.action }}
-                </span>
-              </td>
-              <td>{{ log.protocol }}</td>
-            </tr>
-            <tr *ngIf="logs.length === 0">
-              <td colspan="5" class="text-center text-muted">Aucun log trouvé</td>
-            </tr>
-          </tbody>
+  <tr *ngFor="let log of logs" [ngClass]="{'table-new': log.isNew}">
+  <td>{{ log.timestamp }}</td>
+  <td>{{ log.sourceIp }}</td>
+  <td>{{ log.destinationIp }}</td>
+  <td>
+    <span class="badge" [ngClass]="{'bg-success': log.action==='ALLOW', 'bg-danger': log.action==='DROP'}">
+      {{ log.action }}
+    </span>
+  </td>
+  <td>{{ log.protocol }}</td>
+  <td>{{ log.sourcePort }}</td>
+  <td>{{ log.destinationPort }}</td>
+  <td>{{ log.firewallType }}</td>
+  <td>{{ log.direction }}</td>
+</tr>
+
+
+</tbody>
+
         </table>
       </div>
+
+      <!-- ================= Pagination ================= -->
+      <nav *ngIf="total > limit">
+        <ul class="pagination justify-content-center">
+          <li class="page-item" [class.disabled]="page === 1">
+            <button class="page-link" (click)="changePage(page-1)">Prev</button>
+          </li>
+
+          <li class="page-item"
+              *ngFor="let p of [].constructor(getTotalPages()); let i = index"
+              [class.active]="page === i+1">
+            <button class="page-link" (click)="changePage(i+1)">{{ i+1 }}</button>
+          </li>
+
+          <li class="page-item" [class.disabled]="page === getTotalPages()">
+            <button class="page-link" (click)="changePage(page+1)">Next</button>
+          </li>
+        </ul>
+      </nav>
+
     </div>
   </div>
 </div>

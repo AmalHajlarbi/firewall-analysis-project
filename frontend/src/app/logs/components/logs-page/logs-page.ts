@@ -1,3 +1,4 @@
+
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -27,18 +28,24 @@ export class LogsPage implements OnInit {
 
   // Filtres (optionnel pour loadLogs)
   filters = {
-    search: '',
-    action: '',
-    protocol: '',
-    src_ip: '',
-    dest_ip: '',
-    from: '',
-    to: '',
-  };
+  action: '',
+  protocol: '',
+  sourceIp: '',
+  destinationIp: '',
+  sourcePort: '',
+  destinationPort: '',
+  firewallType: '',
+  direction: '',
+  from: '',
+  to: ''
+};
+newLogIds: number[] = []; // IDs des logs uploadés
+
+
 
   constructor(private logService: Logs, private cdr: ChangeDetectorRef) {}
 
-  ngOnInit(): void {
+  ngOnInit() {
     this.loadSupportedFirewallTypes();
     this.loadLogs(); // si backend supporte pagination + filtres
   }
@@ -55,13 +62,18 @@ export class LogsPage implements OnInit {
     if (file.size > 10 * 1024 * 1024) { // 10 Mo max
       this.errorMessage = 'Le fichier dépasse la taille maximale de 10 Mo.';
       this.selectedFile = null;
-    } else {
+    } 
+    else if (!file.name.endsWith('.log') && !file.name.endsWith('.txt')) {
+  this.errorMessage = 'Format de fichier invalide. Seuls les fichiers .log ou .txt sont acceptés.';
+  this.selectedFile = null;
+}
+    else {
       this.selectedFile = file;
       this.errorMessage = undefined;
     }
   }
 
-  // --- Upload du fichier ---
+
   uploadLogs() {
   if (!this.selectedFile || !this.firewallType) {
     this.errorMessage = 'Veuillez sélectionner un fichier et un type de firewall.';
@@ -73,13 +85,21 @@ export class LogsPage implements OnInit {
   this.errorMessage = undefined;
 
   this.logService.uploadLog(this.selectedFile, this.firewallType).subscribe({
-    next: (res) => {
+    next: (res: any) => {
       this.uploadResult = res;
       this.isUploading = false;
-      console.log('isUploading =', this.isUploading, 'firewallType =', this.firewallType, 'selectedFile =', this.selectedFile);
 
-      this.cdr.detectChanges(); // force Angular à mettre à jour le template
+      // Recharger la première page
+      this.page = 1;
       this.loadLogs();
+
+      // Stocker les IDs des logs uploadés pour le surlignage persistant
+      this.logService.searchLogs({ page: 1, limit: this.limit }).subscribe({
+        next: (logsRes: any) => {
+          const uploadedIds = logsRes.data.slice(0, res.linesProcessed).map((l: any) => l.id);
+          this.newLogIds.push(...uploadedIds);
+        }
+      });
     },
     error: (err) => {
       this.errorMessage = err.error?.message || 'Erreur lors de l’upload.';
@@ -107,20 +127,52 @@ export class LogsPage implements OnInit {
   getTotalPages(): number {
     return Math.ceil(this.total / this.limit);
   }
+  
+ loadLogs() {
+  const params: any = {
+    page: this.page,
+    limit: this.limit,
+  };
 
-  loadLogs() {
-    // TODO : appeler le backend pour récupérer les logs avec filtres
-    // Exemple :
-    // this.logService.getLogs(this.page, this.limit, this.filters).subscribe(...)
-  }
+  // Ajouter seulement les filtres non vides
+  Object.keys(this.filters).forEach(key => {
+    const value = (this.filters as any)[key];
+    if (value) params[key] = value;
+  });
+
+  this.logService.searchLogs(params).subscribe({
+    next: (res: any) => {
+      // Marquer isNew si l'ID est dans newLogIds
+      this.logs = res.data.map((log: any) => ({
+        ...log,
+        isNew: this.newLogIds.includes(log.id)
+      }));
+
+      this.total = Number(res.total);
+      this.page = Number(res.page);
+      this.limit = Number(res.limit);
+
+      this.cdr.detectChanges();
+    },
+    error: () => {
+      this.errorMessage = 'Erreur lors du chargement des logs.';
+    }
+  });
+}
+
+
+
 
   search() {
-    this.page = 1;
-    this.loadLogs();
-  }
+  this.page = 1;
+  this.loadLogs();
+}
 
-  changePage(newPage: number) {
-    this.page = newPage;
-    this.loadLogs();
-  }
+changePage(p: number) {
+  this.page = p;
+  this.loadLogs();
+}
+
+
+
 }
