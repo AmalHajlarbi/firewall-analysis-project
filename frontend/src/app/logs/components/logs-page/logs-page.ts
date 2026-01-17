@@ -1,10 +1,13 @@
+
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Logs,FirewallType, UploadResponse } from '../../services/logs';
+import { Logs, FirewallType, UploadResponse } from '../../services/logs';
+import { ChangeDetectorRef } from '@angular/core';
 
 @Component({
   selector: 'app-logs-page',
+  standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: './logs-page.html',
   styleUrls: ['./logs-page.css'],
@@ -23,106 +26,153 @@ export class LogsPage implements OnInit {
   errorMessage?: string;
   isUploading = false;
 
-  // Filtres
+  // Filtres (optionnel pour loadLogs)
   filters = {
-    search: '',
-    action: '',
-    protocol: '',
-    src_ip: '',
-    dest_ip: '',
-    from: '',
-    to: '',
-  };
+  action: '',
+  protocol: '',
+  sourceIp: '',
+  destinationIp: '',
+  sourcePort: '',
+  destinationPort: '',
+  firewallType: '',
+  direction: '',
+  from: '',
+  to: ''
+};
+newLogIds: number[] = []; // IDs des logs uploadés
 
-  constructor(private logService: Logs) {}
 
-  ngOnInit(): void {
-    this.loadLogs();
+
+  constructor(private logService: Logs, private cdr: ChangeDetectorRef) {}
+
+  ngOnInit() {
     this.loadSupportedFirewallTypes();
+    this.loadLogs(); // si backend supporte pagination + filtres
   }
 
   trackById(index: number, log: any) {
     return log.id;
   }
 
-  // --- Upload logs ---
+  // --- Gestion du fichier sélectionné ---
   onFileSelected(event: any) {
     const file: File = event.target.files[0];
-    if (file) {
-      if (file.size > 10 * 1024 * 1024) { // 10 Mo max
-        this.errorMessage = 'Le fichier dépasse la taille maximale de 10 Mo.';
-        this.selectedFile = null;
-      } else {
-        this.selectedFile = file;
-        this.errorMessage = undefined;
-      }
+    if (!file) return;
+
+    if (file.size > 10 * 1024 * 1024) { // 10 Mo max
+      this.errorMessage = 'Le fichier dépasse la taille maximale de 10 Mo.';
+      this.selectedFile = null;
+    } 
+    else if (!file.name.endsWith('.log') && !file.name.endsWith('.txt')) {
+  this.errorMessage = 'Format de fichier invalide. Seuls les fichiers .log ou .txt sont acceptés.';
+  this.selectedFile = null;
+}
+    else {
+      this.selectedFile = file;
+      this.errorMessage = undefined;
     }
   }
-
-  onFirewallTypeSelected(event: any) {
-    this.firewallType = event.target.value as FirewallType;
-  }
-  // Ajouter cette méthode
-getTotalPages(): number {
-  return Math.ceil(this.total / this.limit);
-}
 
 
   uploadLogs() {
-    if (!this.selectedFile || !this.firewallType) {
-      this.errorMessage = 'Veuillez sélectionner un fichier et un type de firewall.';
-      return;
+  if (!this.selectedFile || !this.firewallType) {
+    this.errorMessage = 'Veuillez sélectionner un fichier et un type de firewall.';
+    return;
+  }
+
+  this.isUploading = true;
+  this.uploadResult = undefined;
+  this.errorMessage = undefined;
+
+  this.logService.uploadLog(this.selectedFile, this.firewallType).subscribe({
+    next: (res: any) => {
+      this.uploadResult = res;
+      this.isUploading = false;
+
+      // Recharger la première page
+      this.page = 1;
+      this.loadLogs();
+
+      // Stocker les IDs des logs uploadés pour le surlignage persistant
+      this.logService.searchLogs({ page: 1, limit: this.limit }).subscribe({
+        next: (logsRes: any) => {
+          const uploadedIds = logsRes.data.slice(0, res.linesProcessed).map((l: any) => l.id);
+          this.newLogIds.push(...uploadedIds);
+        }
+      });
+    },
+    error: (err) => {
+      this.errorMessage = err.error?.message || 'Erreur lors de l’upload.';
+      this.isUploading = false;
+      this.cdr.detectChanges();
     }
+  });
+}
 
-    this.isUploading = true;
-    this.uploadResult = undefined;
-    this.errorMessage = undefined;
-
-    this.logService.uploadLog(this.selectedFile, this.firewallType).subscribe({
-      next: (res) => {
-        this.uploadResult = res;
-        this.isUploading = false;
-        this.loadLogs(); // recharger les logs après upload
+  // --- Charger types de firewall ---
+  loadSupportedFirewallTypes() {
+    this.logService.getSupportedFirewallTypes().subscribe({
+      next: (types) => {
+        console.log('Types reçus du backend:', types);
+        this.supportedTypes = types;
       },
       error: (err) => {
-        this.errorMessage = err.error?.message || 'Erreur lors de l\'upload.';
-        this.isUploading = false;
+        console.error(err);
+        this.errorMessage = 'Impossible de récupérer les types de firewall.';
       }
     });
   }
 
-  loadSupportedFirewallTypes() {
-    this.logService.getSupportedFirewallTypes().subscribe({
-      next: (types) => this.supportedTypes = types,
-      error: () => this.errorMessage = 'Impossible de récupérer les types de firewall.'
-    });
+  // --- Pagination / filtres (optionnel) ---
+  getTotalPages(): number {
+    return Math.ceil(this.total / this.limit);
   }
+  
+ loadLogs() {
+  const params: any = {
+    page: this.page,
+    limit: this.limit,
+  };
 
-  // --- Recherche et pagination ---
-  loadLogs() {
-    const dto: any = {
-      action: this.filters.action || undefined,
-      protocol: this.filters.protocol || undefined,
-      src_ip: this.filters.src_ip || undefined,
-      dest_ip: this.filters.dest_ip || undefined,
-      from: this.filters.from || undefined,
-      to: this.filters.to || undefined,
-      page: this.page,
-      limit: this.limit,
-    };
+  // Ajouter seulement les filtres non vides
+  Object.keys(this.filters).forEach(key => {
+    const value = (this.filters as any)[key];
+    if (value) params[key] = value;
+  });
 
-    // Ici tu peux adapter si ton backend supporte les query params
-    // Exemple avec GET + query params ou POST selon ton API
-    // On garde l'ancien service searchLogs si besoin
-  }
+  this.logService.searchLogs(params).subscribe({
+    next: (res: any) => {
+      // Marquer isNew si l'ID est dans newLogIds
+      this.logs = res.data.map((log: any) => ({
+        ...log,
+        isNew: this.newLogIds.includes(log.id)
+      }));
+
+      this.total = Number(res.total);
+      this.page = Number(res.page);
+      this.limit = Number(res.limit);
+
+      this.cdr.detectChanges();
+    },
+    error: () => {
+      this.errorMessage = 'Erreur lors du chargement des logs.';
+    }
+  });
+}
+
+
+
 
   search() {
-    this.page = 1;
-    this.loadLogs();
-  }
+  this.page = 1;
+  this.loadLogs();
+}
 
-  changePage(newPage: number) {
-    this.page = newPage;
-    this.loadLogs();
-  }
+changePage(p: number) {
+  this.page = p;
+  this.loadLogs();
+}
+
+
+
 }
