@@ -7,11 +7,8 @@ export enum AlertLevel {
 export interface Anomaly {
   type: string;
   level: AlertLevel;
-  count?: number;
   ip?: string;
-  protocol?: string;
-  firewallType?: string;
-  time?: string;
+  count?: number;
   ports?: number;
 }
 

@@ -1,9 +1,6 @@
 import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-//import { SearchModule } from './search/search.module';
-//import { AnalysisModule } from './analysis/analysis.module';
-//import { ReportsModule } from './reports/reports.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 //import { AuthModule } from './auth/auth.module';
 //import { AuditModule } from './audit/audit.module';
@@ -13,6 +10,8 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { SearchModule } from './search/search.module';
 
 import { LogsModule } from './logs/logs.module';
+import { AnalysisModule } from './analysis/analysis.module';
+import { ReportsModule } from './reports/reports.module';
 
 
 @Module({
@@ -36,9 +35,9 @@ import { LogsModule } from './logs/logs.module';
     //AuthModule,
     //UserModule,
     //AuditModule,
-    //SearchModule,
-    //AnalysisModule,
-    //ReportsModule,
+    SearchModule,
+    AnalysisModule,
+    ReportsModule,
     LogsModule,
   ],
   controllers: [AppController],

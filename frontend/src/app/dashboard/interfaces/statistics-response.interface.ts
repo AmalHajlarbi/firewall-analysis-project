@@ -13,12 +13,15 @@ export interface StatisticsResponse {
   total: number;
   allowed: number;
   droped: number;
+
   byProtocol: CountItem[];
   ratioByProtocol: ProtocolRatio[];
+
   byDirection: CountItem[];
   byFirewallType: CountItem[];
   bySourcePort: CountItem[];
   byDestinationPort: CountItem[];
+
   topSourceIp: CountItem[];
   topDestinationIp: CountItem[];
 }
