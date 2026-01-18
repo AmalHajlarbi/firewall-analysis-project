@@ -1,20 +1,24 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { StatisticsResponse } from '../interfaces/statistics-response.interface';
+import { AnomalyResponse } from '../interfaces/anomaly-response.interface';
+
 @Injectable({
   providedIn: 'root',
 })
+
 export class Dashboard {
-  private apiUrl = 'http://localhost:3000/analysis';
+
+  private baseUrl = 'http://localhost:3000/analysis';
 
   constructor(private http: HttpClient) {}
 
-  getStatistics(): Observable<any> {
-    return this.http.get(`${this.apiUrl}/statistics`);
+  getStatistics(filters: any = {}): Observable<StatisticsResponse> {
+    return this.http.get<StatisticsResponse>(`${this.baseUrl}/statistics`, { params: filters });
   }
 
-  getAnomalies(): Observable<any> {
-    return this.http.get(`${this.apiUrl}/anomalies`);
+  getAnomalies(filters: any = {}): Observable<AnomalyResponse> {
+    return this.http.get<AnomalyResponse>(`${this.baseUrl}/anomalies`, { params: filters });
   }
-  
 }

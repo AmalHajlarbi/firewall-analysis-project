@@ -3,6 +3,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Logs, FirewallType, UploadResponse } from '../../services/logs';
+import { Reports } from '../../../reports/services/reports';
 import { ChangeDetectorRef } from '@angular/core';
 
 @Component({
@@ -43,7 +44,7 @@ newLogIds: number[] = []; // IDs des logs uploadés
 
 
 
-  constructor(private logService: Logs, private cdr: ChangeDetectorRef) {}
+  constructor(private logService: Logs, private reportsService: Reports, private cdr: ChangeDetectorRef) {}
 
   ngOnInit() {
     this.loadSupportedFirewallTypes();
@@ -172,6 +173,21 @@ changePage(p: number) {
   this.page = p;
   this.loadLogs();
 }
+exportLogs(format: 'csv' | 'pdf') {
+    this.reportsService.exportLogs(format, this.filters).subscribe(blob => {
+      const file = new Blob([blob], { type: format === 'csv' ? 'text/csv' : 'application/pdf' });
+      const url = window.URL.createObjectURL(file);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `logs.${format}`;
+      a.click();
+      window.URL.revokeObjectURL(url);
+    });
+  }
+
+  applyFilters() {
+    this.loadLogs();
+  }
 
 
 
