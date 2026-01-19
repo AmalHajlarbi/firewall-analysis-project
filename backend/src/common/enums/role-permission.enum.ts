@@ -20,4 +20,3 @@ export enum Permission {
   // System
   MANAGE_SYSTEM = 'manage_system',
 }
-

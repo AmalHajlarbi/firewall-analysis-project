@@ -1,8 +1,8 @@
-import { Column } from 'typeorm';
+import { DeleteDateColumn } from 'typeorm';
 import { TimestampEntity } from './timestamp.entity';
 
 export abstract class SoftDeleteEntity extends TimestampEntity {
-  @Column({
+  @DeleteDateColumn({
     name: 'deleted_at',
     type: 'timestamp',
     nullable: true,
