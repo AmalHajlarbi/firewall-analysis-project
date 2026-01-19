@@ -2,9 +2,10 @@ import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
-//import { AuthModule } from './auth/auth.module';
-//import { AuditModule } from './audit/audit.module';
-//import { UserModule } from './users/users.module';
+import { AuthModule } from './auth/auth.module';
+import { AuditModule } from './audit/audit.module';
+import { UsersModule } from './users/users.module';
+import { AuthAuditModule } from './authaudit/authaudit.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 
 import { SearchModule } from './search/search.module';
@@ -32,9 +33,10 @@ import { ReportsModule } from './reports/reports.module';
         logging: true,
       }),
     }),
-    //AuthModule,
-    //UserModule,
-    //AuditModule,
+    AuthModule,
+    AuthAuditModule,
+    UsersModule,
+    AuditModule,
     SearchModule,
     AnalysisModule,
     ReportsModule,
