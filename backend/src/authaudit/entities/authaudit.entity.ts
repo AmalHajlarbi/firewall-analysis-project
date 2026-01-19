@@ -58,14 +58,7 @@ export class AuthAudit {
   @Column('json', { nullable: true }) // Use simple-json instead of json
   metadata?: Record<string, any>;
 
-  @Column({ 
-  type: 'timestamp', 
-  default: () => 'CURRENT_TIMESTAMP',
-  name: 'created_at'
-})
-@Index()
-createdAt: Date;
-
-
-  
+  @CreateDateColumn({ name: 'created_at' })
+  @Index()
+  createdAt: Date;
 }
