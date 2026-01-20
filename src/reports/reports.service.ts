@@ -14,22 +14,20 @@ export class ReportsService {
     constructor(
     @InjectRepository(FirewallLogEntity)
     private readonly logRepository: Repository<FirewallLogEntity>,
-      private readonly analysisService: AnalysisService,
+    private readonly analysisService: AnalysisService,
   ) {}
 
   // =========================
   // LOGS BRUTS
   // =========================
-  private async getFilteredLogs(query: ReportQueryDto) {
+  private getFilteredLogs(query: ReportQueryDto): Promise<FirewallLogEntity[]> {
     const qb = this.logRepository.createQueryBuilder('log');
 
     if (query.from) qb.andWhere('log.timestamp >= :from', { from: query.from });
     if (query.to) qb.andWhere('log.timestamp <= :to', { to: query.to });
     if (query.firewallType) qb.andWhere('log.firewallType = :fw', { fw: query.firewallType });
-    if (query.sourceIp) qb.andWhere('log.sourceIp = :ip', { ip: query.sourceIp });
     if (query.action) qb.andWhere('log.action = :action', { action: query.action });
-    if (query.direction) qb.andWhere('log.direction = :direction', { direction: query.direction });
-
+    if (query.sourceIp) qb.andWhere('log.sourceIp = :ip', { ip: query.sourceIp });
     return qb.getMany();
   }
   
@@ -41,15 +39,20 @@ export class ReportsService {
   async exportPdf(query: ReportQueryDto) {
     const logs = await this.getFilteredLogs(query);
     const buffer = await generatePdf(logs);
-    return { filename: 'logs.pdf', content: buffer }; // buffer direct
+    return { filename: 'logs.pdf', content: buffer };
   }
 
-    // =========================
-  // STATISTICS + ANOMALIES
   // =========================
+  // STATISTICS + ANOMALIES 
+  // =========================
+  private mapToAnalysisFilters(query: ReportQueryDto) {
+  const { from, to, firewallType, direction } = query;
+  return { from, to, firewallType, direction};
+}
   async exportAnalysis(query: ReportQueryDto) {
-    const stats = await this.analysisService.statistics(query);
-    const anomalies = await this.analysisService.detectAnomalies(query);
+    const filters = this.mapToAnalysisFilters(query);
+    const stats = await this.analysisService.statistics(filters);
+    const anomalies = await this.analysisService.detectAnomalies(filters);
 
     if (query.format === 'pdf') {
       const buffer = await generateAnalysisPdf(stats, anomalies);

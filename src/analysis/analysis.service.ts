@@ -3,8 +3,13 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { FirewallLogEntity } from 'src/logs/entities/firewall-log.entity';
 import { AnalysisFilterDto } from './dto/analysis-filter.dto';
-import { Anomaly, AlertLevel, AnomalyResponse } from './interfaces/anomaly-response.interface';
+import { Anomaly, AlertLevel, AnomalyResponse, AnomalyType } from './interfaces/anomaly-response.interface';
 import { StatisticsResponse } from './interfaces/statistics-response.interface';
+
+const ANOMALY_THRESHOLDS = {
+  MULTIPLE_DROP_COUNT: 50,
+  BRUTE_FORCE_PORTS: 20,
+};
 
 @Injectable()
 export class AnalysisService {
@@ -31,7 +36,7 @@ export class AnalysisService {
       .andWhere("log.action = 'ALLOW'")
       .getCount();
 
-    const droped = await qb.clone()
+    const dropped = await qb.clone()
       .andWhere("log.action = 'DROP'")
       .getCount();
 
@@ -91,7 +96,7 @@ export class AnalysisService {
     return {
       total,
       allowed,
-      droped,
+      dropped,
       byProtocol,
       ratioByProtocol,
       byDirection,
@@ -119,12 +124,14 @@ export class AnalysisService {
       .addSelect('COUNT(*)', 'count')
       .where("log.action = 'DROP'")
       .groupBy('log.sourceIp')
-      .having('COUNT(*) > 50')
+      .having('COUNT(*) > :threshold', {
+        threshold: ANOMALY_THRESHOLDS.MULTIPLE_DROP_COUNT,
+      })
       .getRawMany();
 
     multipleDrop.forEach(r =>
       anomalies.push({
-        type: 'MULTIPLE_DROP',
+        type: AnomalyType.MULTIPLE_DROP,
         level: AlertLevel.HIGH,
         ip: r.ip,
         count: Number(r.count),
@@ -136,12 +143,14 @@ export class AnalysisService {
       .addSelect('COUNT(DISTINCT log.destinationPort)', 'ports')
       .where("log.action = 'DROP'")
       .groupBy('log.sourceIp')
-      .having('COUNT(DISTINCT log.destinationPort) > 20')
+      .having('COUNT(DISTINCT log.destinationPort) > :threshold', {
+        threshold: ANOMALY_THRESHOLDS.BRUTE_FORCE_PORTS,
+      })
       .getRawMany();
 
     bruteForce.forEach(r =>
       anomalies.push({
-        type: 'BRUTE_FORCE',
+        type: AnomalyType.BRUTE_FORCE,
         level: AlertLevel.HIGH,
         ip: r.ip,
         ports: Number(r.ports),

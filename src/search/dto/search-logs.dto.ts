@@ -11,32 +11,32 @@ import {
   IsDateString,
 } from 'class-validator';
 import { FirewallType } from "src/logs/enums/firewall-type.enum";
-import { FirewallLog } from 'src/logs/interfaces/firewall-log.interface';
 
 export class SearchLogsDto {
-    @IsDate()
-    @Type(() => Date)
-    timestamp: Date;
   
+    @IsOptional()
     @IsString()
-    @IsNotEmpty()
-    action: string; // ALLOW / DROP
+    action: string; 
   
+    @IsOptional()
     @IsString()
-    @IsNotEmpty()
-    protocol: string; // TCP / UDP / ICMP
+    protocol: string; 
   
+    @IsOptional()
     @IsIP()
     sourceIp: string;
   
     @IsOptional()
+    @Type(() => Number)
     @IsInt()
     sourcePort?: number;
   
+    @IsOptional()
     @IsIP()
     destinationIp: string;
   
     @IsOptional()
+    @Type(() => Number)
     @IsInt()
     destinationPort?: number;
   
@@ -44,12 +44,17 @@ export class SearchLogsDto {
     @IsString()
     direction?: string; 
   
+    @IsOptional()
     @IsEnum(FirewallType)
     firewallType: FirewallType;
-  
-    @IsString()
-    @IsNotEmpty()
-    rawLog: string;
+    
+    @IsOptional()
+    @IsDateString()
+    from?: string; 
+
+    @IsOptional()
+    @IsDateString()
+    to?: string; 
 
     @IsOptional()
     @Type(() => Number)
@@ -62,12 +67,4 @@ export class SearchLogsDto {
     @IsInt()
     @Min(1)
     limit?: number;
-    
-    @IsOptional()
-    @IsDateString()
-    from?: string; 
-
-    @IsOptional()
-    @IsDateString()
-    to?: string; 
 }

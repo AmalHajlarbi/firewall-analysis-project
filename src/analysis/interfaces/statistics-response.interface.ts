@@ -12,7 +12,7 @@ export interface ProtocolRatio {
 export interface StatisticsResponse {
   total: number;
   allowed: number;
-  droped: number;
+  dropped: number;
   byProtocol: CountItem[];
   ratioByProtocol: ProtocolRatio[];
   byDirection: CountItem[];

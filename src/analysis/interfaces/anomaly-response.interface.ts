@@ -3,9 +3,13 @@ export enum AlertLevel {
   MEDIUM = 'MEDIUM',
   HIGH = 'HIGH',
 }
+export enum AnomalyType {
+  MULTIPLE_DROP = 'MULTIPLE_DROP',
+  BRUTE_FORCE = 'BRUTE_FORCE',
+}
 
 export interface Anomaly {
-  type: string;
+  type: AnomalyType;
   level: AlertLevel;
   count?: number;
   ip?: string;
