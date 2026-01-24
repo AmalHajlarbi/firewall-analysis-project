@@ -12,8 +12,8 @@ export default () => ({
     host: process.env.DB_HOST || 'localhost',
     port: parseInt(process.env.DB_PORT || '3306', 10),
     username: process.env.DB_USERNAME || 'root',
-    password: process.env.DB_PASSWORD || '',
-    database: process.env.DB_DATABASE || 'firewall_logs_dev',
+    password: process.env.DB_PASSWORD || '1234',
+    database: process.env.DB_DATABASE || 'firewall_logs_db',
     synchronize: process.env.NODE_ENV !== 'production', // Auto-create tables in dev/test
     logging: process.env.DB_LOGGING === 'true',
   },

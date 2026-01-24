@@ -12,6 +12,7 @@ import { UsersModule } from '../users/users.module';
 import { AuthGuard } from './guards/auth.guard';
 import { RolesGuard } from './guards/roles.guard';
 import { PermissionsGuard } from './guards/permissions.guard';
+import { JwtAuthGuard } from './guards/jwt-auth.guard';
 
 @Global()
 @Module({
@@ -33,6 +34,7 @@ import { PermissionsGuard } from './guards/permissions.guard';
   providers: [
     AuthService,
     JwtStrategy,
+    JwtAuthGuard,
 
     {
       provide: APP_GUARD,

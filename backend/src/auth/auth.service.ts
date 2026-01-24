@@ -263,6 +263,7 @@ export class AuthService {
       refresh_token: tokens.refreshToken,
     };
   }
+  
   private async handleFailedLogin(user: User): Promise<void> {
     const newAttempts = user.failedLoginAttempts + 1;
 

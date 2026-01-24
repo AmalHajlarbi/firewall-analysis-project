@@ -7,7 +7,8 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UpdateRoleDto } from './dto/update-role.dto';
 import {ChangeOwnPasswordDto, AdminChangePasswordDto} from './dto/change-password.dto';
-import { UserRole } from 'backend/src/common/enums/role-permission.enum';
+//import { UserRole } from 'backend/src/common/enums/role-permission.enum';
+import { UserRole } from 'src/common/enums/role-permission.enum';
 
 @Injectable()
 export class UsersService {
@@ -54,6 +55,7 @@ async findAll(
     if (!user) throw new NotFoundException('User not found');
     return user;
   }
+
   async findOneWithPassword(id: string): Promise<User> {
   const user = await this.usersRepository
     .createQueryBuilder('user')
@@ -131,7 +133,8 @@ async findAll(
     const lockedUntil = new Date(Date.now() + minutes * 60 * 1000);
     await this.usersRepository.update(id, { lockedUntil });
   }
-    async adminChangePassword(
+
+  async adminChangePassword(
     id: string,
     dto: AdminChangePasswordDto,
     ): Promise<void> {
@@ -152,6 +155,7 @@ async findAll(
     const user = await this.findOne(id);
     return !!(user.lockedUntil && user.lockedUntil > new Date());
     }
+    
   async findByEmail(email: string): Promise<User | null> {
     return this.usersRepository
       .createQueryBuilder('user')
