@@ -17,20 +17,22 @@ import { ReportsModule } from './reports/reports.module';
 
 @Module({
   imports: [ 
-    ConfigModule.forRoot({ isGlobal: true }), // ✅ Loads .env variables
+    ConfigModule.forRoot({ isGlobal: true ,
+                           load: [ () => require ('./config/configuration').default()],
+                        }), 
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule,SearchModule],
       inject: [ConfigService],
       useFactory: async (configService: ConfigService) => ({
         type: 'mysql',
-        host: configService.get<string>('DB_HOST'),
-        port: configService.get<number>('DB_PORT'),
-        username: configService.get<string>('DB_USER'),
-        password: configService.get<string>('DB_PASS'),
-        database: configService.get<string>('DB_NAME'),
+        host: configService.get<string>('database.host'),
+        port: configService.get<number>('database.port'),
+        username: configService.get<string>('database.username'),
+        password: configService.get<string>('database.password'),
+        database: configService.get<string>('database.database'),
         entities: [__dirname + '/**/*.entity{.ts,.js}'],
-        synchronize: true, // seulement dev
-        logging: true,
+        synchronize: configService.get<boolean>('database.synchronize'),
+        logging: configService.get<boolean>('database.logging'),
       }),
     }),
     AuthModule,

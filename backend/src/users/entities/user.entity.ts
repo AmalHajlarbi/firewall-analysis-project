@@ -1,7 +1,8 @@
 import { Entity, Column, PrimaryGeneratedColumn, Index} from 'typeorm';
 import { Exclude } from 'class-transformer';
 import { UserRole } from '../../common/enums/role-permission.enum';
-import { SoftDeleteEntity } from 'backend/src/common/database/softdelete.entity';
+//import { SoftDeleteEntity } from 'backend/src/common/database/softdelete.entity';
+import { SoftDeleteEntity } from 'src/common/database/softdelete.entity';
 
 @Entity('users')
 //@Index(['email'])
@@ -30,7 +31,7 @@ export class User extends SoftDeleteEntity {
   @Column({ default: true })
   isActive: boolean;
   
-  @Column({ name: 'refresh_token_hash', nullable: true, select: false })
+  @Column({ name: 'refresh_token_hash', type : 'varchar', length: 255, nullable: true, select: false })
   refreshTokenHash?: string | null;
 
 

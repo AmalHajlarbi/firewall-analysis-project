@@ -14,6 +14,14 @@ import * as fs from 'fs';
 import * as readline from 'readline';
 import { UploadLogDto } from './dto/upload-log.dto';
 import { FirewallType } from './enums/firewall-type.enum';
+import { UseGuards } from '@nestjs/common';
+import { PermissionsGuard } from '../auth/guards/permissions.guard';
+import { Permissions } from '../auth/decorators/permissions.decorator';
+import { Permission } from '../common/enums/role-permission.enum';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard'; // ensure JWT guard is applied first
+
+
+
 
 @Controller('logs')
 export class LogsController {
@@ -22,7 +30,11 @@ export class LogsController {
   /**
    * Upload d'un fichier log
    */
+
+
   @Post('upload')
+  @UseGuards(JwtAuthGuard, PermissionsGuard)
+  @Permissions(Permission.UPLOAD_LOGS)
   @UseInterceptors(
     FileInterceptor('file', {
       storage: diskStorage({
@@ -84,6 +96,8 @@ export class LogsController {
 
 
 @Get('supported-types')
+@UseGuards(JwtAuthGuard, PermissionsGuard)
+@Permissions(Permission.VIEW_LOGS)
   getSupportedTypes() {
     return Object.values(FirewallType);
   }
