@@ -1,72 +1,76 @@
 <h4 class="mb-4">Firewall Dashboard</h4>
 
-<!-- KPI + Pie & Bar charts -->
 <div class="row mb-4">
+  <!-- Allowed vs Dropped -->
   <div class="col-md-4 mb-3">
     <div class="card p-3 shadow-sm">
       <h6 class="card-title">Allowed vs Dropped</h6>
-      <canvas baseChart [data]="allowDenyData" [options]="pieOptions" chartType="pie"></canvas>
+      <app-pie-chart [data]="allowDenyData()" [options]="pieOptions"></app-pie-chart>
     </div>
   </div>
 
+  <!-- Protocol Distribution -->
   <div class="col-md-4 mb-3">
     <div class="card p-3 shadow-sm">
       <h6 class="card-title">Protocol Distribution</h6>
-      <canvas baseChart [data]="protocolData" [options]="barOptions" chartType="bar"></canvas>
+      <app-bar-chart [data]="protocolData()" [options]="barOptions"></app-bar-chart>
     </div>
   </div>
 
+  <!-- Direction Distribution -->
   <div class="col-md-4 mb-3">
     <div class="card p-3 shadow-sm">
       <h6 class="card-title">Direction Distribution</h6>
-      <canvas baseChart [data]="directionData" [options]="barOptions" chartType="bar"></canvas>
+      <app-bar-chart [data]="directionData()" [options]="barOptions"></app-bar-chart>
     </div>
   </div>
 </div>
 
 <div class="row mb-4">
+  <!-- Firewall Types -->
   <div class="col-md-4 mb-3">
     <div class="card p-3 shadow-sm">
       <h6 class="card-title">Firewall Types</h6>
-      <canvas baseChart [data]="firewallTypeData" [options]="barOptions" chartType="bar"></canvas>
+      <app-bar-chart [data]="firewallTypeData()" [options]="barOptions"></app-bar-chart>
     </div>
   </div>
 
+  <!-- Top Source IPs -->
   <div class="col-md-4 mb-3">
     <div class="card p-3 shadow-sm">
       <h6 class="card-title">Top Source IPs</h6>
-      <canvas baseChart [data]="topSourceIpData" [options]="barOptions" chartType="bar"></canvas>
+      <app-bar-chart [data]="topSourceIpData()" [options]="barOptions"></app-bar-chart>
     </div>
   </div>
 
+  <!-- Top Destination IPs -->
   <div class="col-md-4 mb-3">
     <div class="card p-3 shadow-sm">
       <h6 class="card-title">Top Destination IPs</h6>
-      <canvas baseChart [data]="topDestinationIpData" [options]="barOptions" chartType="bar"></canvas>
+      <app-bar-chart [data]="topDestinationIpData()" [options]="barOptions"></app-bar-chart>
     </div>
   </div>
 </div>
 
 <hr>
 
-<!-- Anomalies -->
-<h5>Anomalies détectées</h5>
+<h5>Detected Anomalies</h5>
 <div class="row">
-  <div *ngFor="let anomaly of anomalies" class="col-md-4 mb-3">
+  <div *ngFor="let anomaly of anomalies()" class="col-md-4 mb-3">
     <div class="alert p-3 shadow-sm"
          [ngClass]="{
-           'alert-danger': anomaly.level==='HIGH',
-           'alert-warning': anomaly.level==='MEDIUM',
-           'alert-secondary': anomaly.level==='LOW'
+           'alert-danger': anomaly.level === 'HIGH',
+           'alert-warning': anomaly.level === 'MEDIUM',
+           'alert-secondary': anomaly.level === 'LOW'
          }">
       <b>{{ anomaly.type }}</b> - {{ anomaly.ip }}
       <span *ngIf="anomaly.count">({{ anomaly.count }} drops)</span>
       <span *ngIf="anomaly.ports">({{ anomaly.ports }} ports)</span>
     </div>
   </div>
-  
 </div>
+
 <div class="d-flex gap-2 mt-3 mb-4">
-  <button class="btn btn-success" (click)="exportAnalysis('csv')">Export CSV</button>
-  <button class="btn btn-danger" (click)="exportAnalysis('pdf')">Export PDF</button>
+  <button class="btn btn-success" (click)="downloadAnalysis('csv')">Export CSV</button>
+  <button class="btn btn-danger" (click)="downloadAnalysis('pdf')">Export PDF</button>
 </div>
