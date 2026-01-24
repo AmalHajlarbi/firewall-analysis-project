@@ -1,67 +1,73 @@
-import { Component, OnInit, signal } from '@angular/core';
-import { CommonModule, NgFor, NgIf } from '@angular/common';
+import { Component, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { NgChartsModule } from 'ng2-charts';
 import { Dashboard } from '../../services/dashboard';
 import { PieChart } from '../pie-chart/pie-chart';
-import { BarChart} from '../bar-chart/bar-chart';
+import { BarChart } from '../bar-chart/bar-chart';
 import { ChartData, ChartOptions } from 'chart.js';
 import { Reports } from '../../../reports/services/reports';
 import { downloadBlob } from '../../../shared/utils/fcts.util';
-
-
+import { Filter } from '../../../filters/filter';
+import { signal,effect } from '@angular/core';
 
 @Component({
   selector: 'app-dashboard-page',
+  standalone: true,
   imports: [CommonModule, NgChartsModule, PieChart, BarChart],
   templateUrl: './dashboard-page.html',
   styleUrls: ['./dashboard-page.css']
 })
 export class DashboardPage implements OnInit {
 
-  allowDenyData: ChartData<'pie'> = { labels: [], datasets: [{ data: [] }] };
-  protocolData: ChartData<'bar'> = { labels: [], datasets: [{ data: [] }] };
-  directionData: ChartData<'bar'> = { labels: [], datasets: [{ data: [] }] };
-  firewallTypeData: ChartData<'bar'> = { labels: [], datasets: [{ data: [] }] };
-  topSourceIpData: ChartData<'bar'> = { labels: [], datasets: [{ data: [] }] };
-  topDestinationIpData: ChartData<'bar'> = { labels: [], datasets: [{ data: [] }] };
+  allowDenyData = signal<ChartData<'pie'>>({ labels: ['Allowed', 'Dropped'], datasets: [{ data: [0, 0] }] });
+  protocolData = signal<ChartData<'bar'>>({ labels: [], datasets: [{ data: [] }] });
+  directionData = signal<ChartData<'bar'>>({ labels: [], datasets: [{ data: [] }] });
+  firewallTypeData = signal<ChartData<'bar'>>({ labels: [], datasets: [{ data: [] }] });
+  topSourceIpData = signal<ChartData<'bar'>>({ labels: [], datasets: [{ data: [] }] });
+  topDestinationIpData = signal<ChartData<'bar'>>({ labels: [], datasets: [{ data: [] }] });
 
   pieOptions: ChartOptions<'pie'> = { responsive: true, plugins: { legend: { position: 'top' } } };
-  barOptions: ChartOptions<'bar'> = {
-    responsive: true,
-    plugins: { legend: { display: false }, datalabels: { color: '#000' } },
-    scales: { x: { title: { display: true } }, y: { beginAtZero: true } }
-  };
+  barOptions: ChartOptions<'bar'> = { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } };
 
   anomalies = signal<any[]>([]);
 
-  constructor(private dashboardService: Dashboard,  private reportsService: Reports) {}
+  constructor(
+    private dashboardService: Dashboard,
+    private reportsService: Reports,
+    private filterService: Filter
+  ) {}
 
   ngOnInit(): void {
-    this.loadStatistics();
-    this.loadAnomalies();
+    const filters = this.filterService.filters();
+    this.loadStatistics(filters);
+    this.loadAnomalies(filters);
+    
   }
-  
-loadStatistics() {
-  this.dashboardService.getStatistics().subscribe(stats => {
-    this.allowDenyData = stats.allowDenyData;
-    this.protocolData = stats.protocolData;
-    this.directionData = stats.directionData;
-    this.firewallTypeData = stats.firewallTypeData;
-    this.topSourceIpData = stats.topSourceIpData;
-    this.topDestinationIpData = stats.topDestinationIpData;
-  });
-}
 
-  loadAnomalies() {
-    this.dashboardService.getAnomalies().subscribe(res => {
-      this.anomalies.set(res.anomalies);
+  loadStatistics(filters: any = {}) {
+    this.dashboardService.getStatistics(filters).subscribe({
+      next: stats => {
+        this.allowDenyData.set(stats.allowDenyData);
+        this.protocolData.set(stats.protocolData);
+        this.directionData.set(stats.directionData);
+        this.firewallTypeData.set(stats.firewallTypeData);
+        this.topSourceIpData.set(stats.topSourceIpData);
+        this.topDestinationIpData.set(stats.topDestinationIpData);
+      },
+      error: err => console.error('Erreur statistiques:', err)
     });
   }
-  
-downloadAnalysis(format: 'csv' | 'pdf') {
-    const filters = {};
+
+  loadAnomalies(filters: any = {}) {
+    this.dashboardService.getAnomalies(filters).subscribe({
+      next: res => this.anomalies.set(res.anomalies ?? []),
+      error: err => console.error('Erreur anomalies:', err)
+    });
+  }
+
+  downloadAnalysis(format: 'csv' | 'pdf') {
+    const filters = this.filterService.filters();
     this.reportsService.exportAnalysis(format, filters)
       .subscribe(blob => downloadBlob(blob, `logs.${format}`));
   }
-
 }

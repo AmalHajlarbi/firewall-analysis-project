@@ -20,5 +20,20 @@ export class Filter {
   setFilters(newFilters: Partial<LogFilters>) {
     this.filters.set({ ...this.filters(), ...newFilters });
   }
+  resetFilters() {
+    const emptyFilters: LogFilters = {
+      action: '',
+      protocol: '',
+      sourceIp: '',
+      destinationIp: '',
+      sourcePort: '',
+      destinationPort: '',
+      firewallType: '',
+      direction: '',
+      from: '',
+      to: ''
+    };
+    this.setFilters(emptyFilters);
+  }
   
 }

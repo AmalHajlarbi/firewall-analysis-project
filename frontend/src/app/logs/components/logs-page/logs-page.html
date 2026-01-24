@@ -21,17 +21,9 @@
 
         <div class="col-md-4">
           <label class="form-label">Firewall Type</label>
-          <select
-            class="form-select"
-            [(ngModel)]="firewallType"
-          >
+          <select class="form-select" [(ngModel)]="firewallType">
             <option [ngValue]="null" disabled>-- Select --</option>
-            <option
-              *ngFor="let type of supportedTypes"
-              [ngValue]="type"
-            >
-              {{ type }}
-            </option>
+            <option *ngFor="let type of supportedTypes" [ngValue]="type">{{ type }}</option>
           </select>
         </div>
 
@@ -67,17 +59,24 @@
       <h5 class="mb-3">Logs filter</h5>
 
       <div class="row g-2 mb-3">
-
+        <!-- Action -->
         <div class="col-md-2">
-          <select class="form-select" [(ngModel)]="filters.action">
+          <select class="form-select"
+            [ngModel]="filterService.filters().action"
+            (ngModelChange)="filterService.setFilters({ action: $event })"
+          >
             <option value="">Action</option>
             <option value="ALLOW">ALLOW</option>
             <option value="DROP">DROP</option>
           </select>
         </div>
 
+        <!-- Protocol -->
         <div class="col-md-2">
-          <select class="form-select" [(ngModel)]="filters.protocol">
+          <select class="form-select"
+            [ngModel]="filterService.filters().protocol"
+            (ngModelChange)="filterService.setFilters({ protocol: $event })"
+          >
             <option value="">Protocole</option>
             <option value="TCP">TCP</option>
             <option value="UDP">UDP</option>
@@ -85,51 +84,57 @@
           </select>
         </div>
 
+        <!-- Source IP -->
         <div class="col-md-2">
-          <input
-            class="form-control"
+          <input class="form-control"
             placeholder="Source IP"
-            [(ngModel)]="filters.sourceIp"
+            [ngModel]="filterService.filters().sourceIp"
+            (ngModelChange)="filterService.setFilters({ sourceIp: $event })"
           />
         </div>
 
+        <!-- Destination IP -->
         <div class="col-md-2">
-          <input
-            class="form-control"
+          <input class="form-control"
             placeholder="Destination IP"
-            [(ngModel)]="filters.destinationIp"
+            [ngModel]="filterService.filters().destinationIp"
+            (ngModelChange)="filterService.setFilters({ destinationIp: $event })"
           />
         </div>
 
+        <!-- Source Port -->
         <div class="col-md-2">
-          <input
-            class="form-control"
-            type="number"
-            placeholder="Port source"
-            [(ngModel)]="filters.sourcePort"
+          <input class="form-control" type="number" placeholder="Port source"
+            [ngModel]="filterService.filters().sourcePort"
+            (ngModelChange)="filterService.setFilters({ sourcePort: $event })"
           />
         </div>
 
+        <!-- Destination Port -->
         <div class="col-md-2">
-          <input
-            class="form-control"
-            type="number"
-            placeholder="Port destination"
-            [(ngModel)]="filters.destinationPort"
+          <input class="form-control" type="number" placeholder="Port destination"
+            [ngModel]="filterService.filters().destinationPort"
+            (ngModelChange)="filterService.setFilters({ destinationPort: $event })"
           />
         </div>
 
+        <!-- Firewall Type -->
         <div class="col-md-2">
-          <select class="form-select" [(ngModel)]="filters.firewallType">
+          <select class="form-select"
+            [ngModel]="filterService.filters().firewallType"
+            (ngModelChange)="filterService.setFilters({ firewallType: $event })"
+          >
             <option value="">Type FW</option>
-            <option *ngFor="let type of supportedTypes" [ngValue]="type">
-              {{ type }}
-            </option>
+            <option *ngFor="let type of supportedTypes" [ngValue]="type">{{ type }}</option>
           </select>
         </div>
 
+        <!-- Direction -->
         <div class="col-md-2">
-          <select class="form-select" [(ngModel)]="filters.direction">
+          <select class="form-select"
+            [ngModel]="filterService.filters().direction"
+            (ngModelChange)="filterService.setFilters({ direction: $event })"
+          >
             <option value="">Direction</option>
             <option value="INBOUND">INBOUND</option>
             <option value="OUTBOUND">OUTBOUND</option>
@@ -138,34 +143,30 @@
           </select>
         </div>
 
+        <!-- From -->
         <div class="col-md-2">
-          <input
-            type="datetime-local"
-            class="form-control"
-            [(ngModel)]="filters.from"
+          <input type="datetime-local" class="form-control"
+            [ngModel]="filterService.filters().from"
+            (ngModelChange)="filterService.setFilters({ from: $event })"
           />
         </div>
 
+        <!-- To -->
         <div class="col-md-2">
-          <input
-            type="datetime-local"
-            class="form-control"
-            [(ngModel)]="filters.to"
+          <input type="datetime-local" class="form-control"
+            [ngModel]="filterService.filters().to"
+            (ngModelChange)="filterService.setFilters({ to: $event })"
           />
         </div>
 
+        <!-- Search Button -->
         <div class="col-md-2">
-          <button
-            class="btn btn-primary w-100"
-            (click)="search()"
-          >
-            Search
-          </button>
+          <button class="btn btn-primary w-100" (click)="search()">Search</button>
         </div>
       </div>
 
+      <!-- Logs Table -->
       <h5 class="mb-3">Logs</h5>
-
       <div class="table-responsive">
         <table class="table table-hover align-middle">
           <thead class="table-light">
@@ -181,20 +182,17 @@
               <th>Direction</th>
             </tr>
           </thead>
-
           <tbody>
             <tr *ngFor="let log of logs()">
               <td>{{ log.timestamp }}</td>
               <td>{{ log.sourceIp }}</td>
               <td>{{ log.destinationIp }}</td>
               <td>
-                <span
-                  class="badge"
+                <span class="badge"
                   [ngClass]="{
                     'bg-success': log.action === 'ALLOW',
                     'bg-danger': log.action === 'DROP'
-                  }"
-                >
+                  }">
                   {{ log.action }}
                 </span>
               </td>
@@ -208,34 +206,18 @@
         </table>
       </div>
 
+      <!-- Pagination -->
       <nav *ngIf="total() > limit()" class="mt-3">
         <ul class="pagination justify-content-center">
-
           <li class="page-item" [class.disabled]="page() === 1">
-            <button class="page-link" (click)="changePage(page() - 1)">
-              Prev
-            </button>
+            <button class="page-link" (click)="changePage(page() - 1)">Prev</button>
           </li>
-
-          <li
-            class="page-item"
-            *ngFor="let p of visiblePages()"
-            [class.active]="page() === p"
-          >
-            <button class="page-link" (click)="changePage(p)">
-              {{ p }}
-            </button>
+          <li class="page-item" *ngFor="let p of visiblePages()" [class.active]="page() === p">
+            <button class="page-link" (click)="changePage(p)">{{ p }}</button>
           </li>
-
-          <li
-            class="page-item"
-            [class.disabled]="page() === totalPages()"
-          >
-            <button class="page-link" (click)="changePage(page() + 1)">
-              Next
-            </button>
+          <li class="page-item" [class.disabled]="page() === totalPages()">
+            <button class="page-link" (click)="changePage(page() + 1)">Next</button>
           </li>
-
         </ul>
       </nav>
 
@@ -243,12 +225,8 @@
   </div>
 
   <div class="d-flex gap-2 mt-4">
-    <button class="btn btn-success" (click)="downloadLogs('csv')">
-      Export CSV
-    </button>
-    <button class="btn btn-danger" (click)="downloadLogs('pdf')">
-      Export PDF
-    </button>
+    <button class="btn btn-success" (click)="downloadLogs('csv')">Export CSV</button>
+    <button class="btn btn-danger" (click)="downloadLogs('pdf')">Export PDF</button>
   </div>
 
 </div>

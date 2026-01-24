@@ -32,26 +32,16 @@ export class LogsPage implements OnInit {
   errorMessage = signal<string | undefined>(undefined);
 
 
-  filters: LogFilters = {
-    action: '',
-    protocol: '',
-    sourceIp: '',
-    destinationIp: '',
-    sourcePort: '',
-    destinationPort: '',
-    firewallType: '',
-    direction: '',
-    from: '',
-    to: ''
-  };
+  
 
 
 
-  constructor(private logService: Logs, private reportsService: Reports, private cdr: ChangeDetectorRef,private filterService: Filter) {}
+  constructor(private logService: Logs, private reportsService: Reports, private cdr: ChangeDetectorRef,public filterService: Filter) {}
 
   ngOnInit() {
     this.loadSupportedFirewallTypes();
     this.loadLogs(); 
+    
   }
 
   
@@ -62,9 +52,10 @@ export class LogsPage implements OnInit {
   visiblePages = computed(() =>
     computeVisiblePages(this.page(), this.totalPages())
   );
+  
   loadLogs() {
     this.logService
-      .searchLogs(this.page(), this.limit(), this.filters)
+      .searchLogs(this.page(), this.limit(), this.filterService.filters())
       .subscribe({
         next: res => {
           this.logs.set(res.data);
@@ -85,14 +76,13 @@ export class LogsPage implements OnInit {
     this.loadLogs();
   }
 
-
   onFileSelected(event: Event) {
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0];
     if (!file) return;
 
     if (file.size > 10 * 1024 * 1024) {
-      this.errorMessage.set('Fichier > 10 Mo');
+      this.errorMessage.set('File > 10 Mo');
       return;
     }
 
@@ -128,7 +118,6 @@ export class LogsPage implements OnInit {
       });
   }
 
-
   loadSupportedFirewallTypes() {
     this.logService.getSupportedFirewallTypes()
       .subscribe({
@@ -137,17 +126,8 @@ export class LogsPage implements OnInit {
       });
   }
 
-
   downloadLogs(format: 'csv' | 'pdf') {
-    this.reportsService.exportLogs(format, this.filters)
+    this.reportsService.exportLogs(format, this.filterService.filters())
       .subscribe(blob => downloadBlob(blob, `logs.${format}`));
   }
-  applyFilters() {
-  // Met à jour le service avec les filtres choisis
-  this.filterService.setFilters(this.filters);
-
-  // Recharge les logs
-  this.page.set(1);
-  this.loadLogs();
-}
 }

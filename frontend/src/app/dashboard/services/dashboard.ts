@@ -17,7 +17,7 @@ export class Dashboard {
 
   constructor(private http: HttpClient) {}
 
-  getStatistics(): Observable<{
+  getStatistics(filters: any = {}): Observable<{
     allowDenyData: ChartData<'pie'>;
     protocolData: ChartData<'bar'>;
     directionData: ChartData<'bar'>;
@@ -25,7 +25,7 @@ export class Dashboard {
     topSourceIpData: ChartData<'bar'>;
     topDestinationIpData: ChartData<'bar'>;
   }> {
-    return this.http.get<StatisticsResponse>(`${this.baseUrl}/statistics`).pipe(
+    return this.http.get<StatisticsResponse>(`${this.baseUrl}/statistics`,{ params: filters }).pipe(
       map(stats => ({
         allowDenyData: {
           labels: ['Allowed', 'Dropped'],
