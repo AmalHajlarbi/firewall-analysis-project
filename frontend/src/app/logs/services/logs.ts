@@ -1,8 +1,8 @@
 
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { FirewallType } from '../enums/FirewallType.enum';
-import { UploadResponse,LogsSearchResponse ,FirewallLog, LogFilters } from '../interfaces/Firewall.interfaces';
+import { FirewallType } from '../../upload/enums/FirewallType.enum';
+import { LogsSearchResponse ,FirewallLog, LogFilters } from '../interfaces/Firewall.interfaces';
 import { Observable, catchError, throwError } from 'rxjs';
 
 @Injectable({
@@ -14,18 +14,7 @@ export class Logs {
 
   constructor(private http: HttpClient) {}
 
-  uploadLog(file: File, firewallType: FirewallType): Observable<UploadResponse> {
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('firewallType', firewallType.toString()); 
-    return this.http.post<UploadResponse>(`${this.apiUrl}/upload`, formData)
-    .pipe(catchError(this.handleError));;
-  }
-
-  getSupportedFirewallTypes(): Observable<FirewallType[]> {
-    return this.http.get<FirewallType[]>(`${this.apiUrl}/supported-types`)
-    .pipe(catchError(this.handleError));;
-  }
+  
   searchLogs(
     page: number,
     limit: number,

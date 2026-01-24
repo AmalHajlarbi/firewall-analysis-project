@@ -1,4 +1,4 @@
-import { FirewallType } from '../enums/FirewallType.enum';
+import { FirewallType } from '../../upload/enums/FirewallType.enum';
 export interface FirewallLog {
   id: number;
   timestamp: string;
@@ -28,12 +28,7 @@ export interface LogFilters {
 
 
 
-export interface UploadResponse {
-  message: string;
-  linesProcessed: number;
-  linesIgnored: number;
-  warning?: string;
-}
+
 export interface LogsSearchResponse {
   data: FirewallLog[];
   total: number;
