@@ -13,7 +13,7 @@ export class Reports {
   getFilteredLogs(filters: any): Observable<any> {
     let params = new HttpParams();
     Object.keys(filters).forEach(k => { if (filters[k]) params = params.set(k, filters[k]); });
-    return this.http.get(`${this.baseUrl}/logsbruts/csv`, { params }); // ou endpoint JSON si existant
+    return this.http.get(`${this.baseUrl}/logsbruts/csv`, { params }); 
   }
 
   exportLogs(format: 'csv' | 'pdf', filters: any) {
