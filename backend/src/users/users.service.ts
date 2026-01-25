@@ -7,7 +7,8 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UpdateRoleDto } from './dto/update-role.dto';
 import {ChangeOwnPasswordDto, AdminChangePasswordDto} from './dto/change-password.dto';
-import { UserRole } from 'src/common/enums/role-permission.enum';
+//import { UserRole } from 'src/common/enums/role-permission.enum';
+import { UserRole } from '../common/enums/role-permission.enum';
 
 @Injectable()
 export class UsersService {

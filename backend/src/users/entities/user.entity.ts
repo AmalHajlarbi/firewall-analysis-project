@@ -1,7 +1,8 @@
 import { Entity, Column, PrimaryGeneratedColumn, Index} from 'typeorm';
 import { Exclude } from 'class-transformer';
 import { UserRole } from '../../common/enums/role-permission.enum';
-import { SoftDeleteEntity } from 'src/common/database/softdelete.entity';
+import { SoftDeleteEntity } from '../../common/database/softdelete.entity';
+//import { SoftDeleteEntity } from 'src/common/database/softdelete.entity';
 
 @Entity('users')
 //@Index(['email'])
