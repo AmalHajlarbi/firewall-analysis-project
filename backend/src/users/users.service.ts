@@ -7,7 +7,6 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UpdateRoleDto } from './dto/update-role.dto';
 import {ChangeOwnPasswordDto, AdminChangePasswordDto} from './dto/change-password.dto';
-//import { UserRole } from 'backend/src/common/enums/role-permission.enum';
 import { UserRole } from 'src/common/enums/role-permission.enum';
 
 @Injectable()
@@ -26,29 +25,37 @@ export class UsersService {
     const user = this.usersRepository.create({ ...dto, passwordHash, isActive: dto.isActive ?? true, role: dto.role ?? UserRole.ANALYST });
     return this.usersRepository.save(user);
   }
-
-async findAll(
-  page = 1,
-  limit = 20,
-): Promise<{ users: User[]; total: number; page: number; lastPage: number }> {
-  const total = await this.usersRepository.count({
-    where: { deletedAt: IsNull() },
-  });
-
-  const lastPage = Math.ceil(total / limit);
-
-  const safePage = page > lastPage ? lastPage : page;
-
-  const users = await this.usersRepository.find({
-    where: { deletedAt: IsNull() },
-    skip: (safePage - 1) * limit,
-    take: limit,
-    order: { createdAt: 'DESC' },
-  });
-
-  return { users, total, page: safePage, lastPage };
-
+  async getAdminCount(): Promise<number> {
+    return this.usersRepository.count({
+      where: { 
+        role: UserRole.ADMIN,
+        deletedAt: IsNull() // soft delete consideration
+      }
+    });
   }
+
+  async findAll(
+    page = 1,
+    limit = 20,
+  ): Promise<{ users: User[]; total: number; page: number; lastPage: number }> {
+    const total = await this.usersRepository.count({
+      where: { deletedAt: IsNull() },
+    });
+
+    const lastPage = Math.ceil(total / limit);
+
+    const safePage = page > lastPage ? lastPage : page;
+
+    const users = await this.usersRepository.find({
+      where: { deletedAt: IsNull() },
+      skip: (safePage - 1) * limit,
+      take: limit,
+      order: { createdAt: 'DESC' },
+    });
+
+    return { users, total, page: safePage, lastPage };
+
+    }
 
   async findOne(id: string): Promise<User> {
     const user = await this.usersRepository.findOne({ where: { id, deletedAt: IsNull() } });

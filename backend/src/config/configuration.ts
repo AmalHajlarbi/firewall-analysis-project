@@ -1,4 +1,3 @@
-// src/config/configuration.ts
 export default () => ({
   // Application
   app: {
