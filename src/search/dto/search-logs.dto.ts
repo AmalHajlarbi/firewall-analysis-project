@@ -67,4 +67,7 @@ export class SearchLogsDto {
     @IsInt()
     @Min(1)
     limit?: number;
+
+    @IsString()
+    fileId: string;
 }

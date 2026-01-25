@@ -11,16 +11,21 @@ export class SearchService {
     private readonly logRepo: Repository<FirewallLogEntity>,
   ) {}
 
-  async search(dto: SearchLogsDto) {
+  async search(query: SearchLogsDto) {
+        if (!query.fileId) {
+      throw new Error('fileId is required');
+    }
     const qb = this.logRepo.createQueryBuilder('log');
 
-    this.applyFilters(qb, dto);
-    this.applyPagination(qb, dto);
+    qb.where('log.fileId = :fileId', { fileId: query.fileId });
+
+    this.applyFilters(qb, query);
+    this.applyPagination(qb, query);
 
     const [entities, total] = await qb.getManyAndCount();
 
-    const page = dto.page ?? 1;
-    const limit = dto.limit ?? 20;
+    const page = query.page ?? 1;
+    const limit = query.limit ?? 20;
 
     const data = entities.map(log => ({
       timestamp: log.timestamp,
@@ -54,6 +59,13 @@ export class SearchService {
       qb.andWhere('log.destinationIp = :destinationIp', {
         destinationIp: dto.destinationIp,
       });
+
+    if (dto.sourcePort)
+      qb.andWhere('log.sourcePort = :sourcePort', { sourcePort: dto.sourcePort });
+    
+    if (dto.destinationPort)
+      qb.andWhere('log.destinationPort = :destinationPort', { destinationPort: dto.destinationPort });
+
 
     if (dto.firewallType)
       qb.andWhere('log.firewallType = :firewallType', {

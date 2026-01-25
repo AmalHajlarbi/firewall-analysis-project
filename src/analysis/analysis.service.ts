@@ -21,8 +21,13 @@ export class AnalysisService {
   // =========================
   // STATISTICS
   // =========================
-  async statistics(filters?: AnalysisFilterDto): Promise<StatisticsResponse> {
-    const qb = this.repo.createQueryBuilder('log');
+  async statistics(filters: AnalysisFilterDto): Promise<StatisticsResponse> {
+    if (!filters.fileId) {
+      throw new Error('fileId is required');
+    }
+
+    const qb = this.repo.createQueryBuilder('log')
+    .where('log.fileId = :fileId', { fileId: filters.fileId });
 
     if (filters?.from) qb.andWhere('log.timestamp >= :from', { from: filters.from });
     if (filters?.to) qb.andWhere('log.timestamp <= :to', { to: filters.to });
@@ -111,9 +116,13 @@ export class AnalysisService {
   // =========================
   // ANOMALIES
   // =========================
-  async detectAnomalies(filters?: AnalysisFilterDto): Promise<AnomalyResponse> {
-    const qb = this.repo.createQueryBuilder('log');
-
+  async detectAnomalies(filters: AnalysisFilterDto): Promise<AnomalyResponse> {
+    if (!filters.fileId) {
+      throw new Error('fileId is required');
+    }
+    const qb = this.repo.createQueryBuilder('log')
+    .where('log.fileId = :fileId', { fileId: filters.fileId });
+    
     if (filters?.from) qb.andWhere('log.timestamp >= :from', { from: filters.from });
     if (filters?.to) qb.andWhere('log.timestamp <= :to', { to: filters.to });
 
@@ -122,7 +131,7 @@ export class AnalysisService {
     const multipleDrop = await qb.clone()
       .select('log.sourceIp', 'ip')
       .addSelect('COUNT(*)', 'count')
-      .where("log.action = 'DROP'")
+      .andWhere("log.action = 'DROP'")
       .groupBy('log.sourceIp')
       .having('COUNT(*) > :threshold', {
         threshold: ANOMALY_THRESHOLDS.MULTIPLE_DROP_COUNT,
@@ -141,7 +150,7 @@ export class AnalysisService {
     const bruteForce = await qb.clone()
       .select('log.sourceIp', 'ip')
       .addSelect('COUNT(DISTINCT log.destinationPort)', 'ports')
-      .where("log.action = 'DROP'")
+      .andWhere("log.action = 'DROP'")
       .groupBy('log.sourceIp')
       .having('COUNT(DISTINCT log.destinationPort) > :threshold', {
         threshold: ANOMALY_THRESHOLDS.BRUTE_FORCE_PORTS,

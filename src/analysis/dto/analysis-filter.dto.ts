@@ -22,4 +22,8 @@ export class AnalysisFilterDto {
   @IsString()
   direction?: string;
 
+  @IsOptional()
+  @IsString()
+  fileId: string;  
+
 }

@@ -43,4 +43,8 @@ export class ReportQueryDto {
   @IsOptional()
   @IsEnum(ReportFormat)
   format?: ReportFormat;
+
+  @IsOptional()  
+  @IsString()
+  fileId: string;
 }

@@ -16,12 +16,15 @@ export class ReportsService {
     private readonly logRepository: Repository<FirewallLogEntity>,
     private readonly analysisService: AnalysisService,
   ) {}
-
   // =========================
   // LOGS BRUTS
   // =========================
   private getFilteredLogs(query: ReportQueryDto): Promise<FirewallLogEntity[]> {
+    if (!query.fileId) {
+      throw new Error('fileId is required');
+    }
     const qb = this.logRepository.createQueryBuilder('log');
+    qb.where('log.fileId = :fileId', { fileId: query.fileId });
 
     if (query.from) qb.andWhere('log.timestamp >= :from', { from: query.from });
     if (query.to) qb.andWhere('log.timestamp <= :to', { to: query.to });
@@ -46,8 +49,8 @@ export class ReportsService {
   // STATISTICS + ANOMALIES 
   // =========================
   private mapToAnalysisFilters(query: ReportQueryDto) {
-  const { from, to, firewallType, direction } = query;
-  return { from, to, firewallType, direction};
+  const { fileId, from, to, firewallType, direction } = query;
+  return { fileId, from, to, firewallType, direction};
 }
   async exportAnalysis(query: ReportQueryDto) {
     const filters = this.mapToAnalysisFilters(query);
