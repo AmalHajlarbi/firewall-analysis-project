@@ -10,7 +10,6 @@ export class AnalysisController {
   async getStatistics(@Query() query: AnalysisFilterDto) {
     return this.analysisService.statistics(query);
   }
-
   @Get('anomalies')
   async getAnomalies(@Query() query: AnalysisFilterDto) {
     return this.analysisService.detectAnomalies(query);
