@@ -21,7 +21,9 @@ export class AnalysisFilterDto {
   @IsOptional()
   @IsString()
   direction?: string;
-
+  
   @IsOptional()
-  format?: 'csv' | 'pdf';
+  @IsString()
+  fileId: string;  
+
 }
