@@ -8,7 +8,6 @@ import { ReportQueryDto } from './dto/report-query.dto';
 export class ReportsController {
   constructor(private readonly reportsService: ReportsService) {}
 
-  // Télécharger le CSV
   @Get('logsbruts/csv')
   async exportCsv(@Query() query: ReportQueryDto, @Res() res: Response) {
     const { filename, content } = await this.reportsService.exportCsv(query);
@@ -17,13 +16,12 @@ export class ReportsController {
     res.send(content);
   }
 
-  // Télécharger le PDF
   @Get('logsbruts/pdf')
   async exportPdf(@Query() query: ReportQueryDto, @Res() res: Response) {
     const { filename, content } = await this.reportsService.exportPdf(query);
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
-    res.send(content); // Décoder base64 pour renvoyer le fichier
+    res.send(content); 
   }
 
   @Get('analysis')

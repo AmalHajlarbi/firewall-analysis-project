@@ -7,7 +7,7 @@ export class SearchController {
   constructor(private readonly searchService: SearchService) {}
   
   @Get()
-  search(@Query() dto: SearchLogsDto) {
-    return this.searchService.search(dto);
+  search(@Query() query: SearchLogsDto) {
+    return this.searchService.search(query);
   }
 }

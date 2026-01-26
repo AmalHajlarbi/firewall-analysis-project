@@ -7,12 +7,12 @@ export class AnalysisController {
   constructor(private readonly analysisService: AnalysisService) {}
 
   @Get('statistics')
-  getStatistics(@Query() query: AnalysisFilterDto) {
+  async getStatistics(@Query() query: AnalysisFilterDto) {
     return this.analysisService.statistics(query);
   }
 
   @Get('anomalies')
-  getAnomalies(@Query() query: AnalysisFilterDto) {
+  async getAnomalies(@Query() query: AnalysisFilterDto) {
     return this.analysisService.detectAnomalies(query);
   }
 }
