@@ -35,8 +35,9 @@ export class LogsController {
 
 
   @Post('upload')
-  @UseGuards(JwtAuthGuard, PermissionsGuard)
-  @Permissions(Permission.UPLOAD_LOGS)
+  //@UseGuards(JwtAuthGuard, PermissionsGuard)
+  //@Permissions(Permission.UPLOAD_LOGS)
+  @Public()
   @UseInterceptors(
     FileInterceptor('file', {
       storage: diskStorage({
@@ -102,12 +103,12 @@ export class LogsController {
 
 
 @Get('supported-types')
-@UseGuards(JwtAuthGuard, PermissionsGuard)
-@Permissions(Permission.VIEW_LOGS)
+@Public()
+//@UseGuards(JwtAuthGuard, PermissionsGuard)
+//@Permissions(Permission.VIEW_LOGS)
   getSupportedTypes() {
     return Object.values(FirewallType);
   }
 
 
 }
-

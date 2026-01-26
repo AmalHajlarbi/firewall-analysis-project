@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { Repository, SelectQueryBuilder } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { SearchLogsDto } from './dto/search-logs.dto';
-import { FirewallLogEntity } from '../logs/entities/firewall-log.entity';
+import { FirewallLogEntity } from 'src/logs/entities/firewall-log.entity';
 
 @Injectable()
 export class SearchService {
@@ -12,7 +12,7 @@ export class SearchService {
   ) {}
 
   async search(query: SearchLogsDto) {
-    if (!query.fileId) {
+        if (!query.fileId) {
       throw new Error('fileId is required');
     }
     const qb = this.logRepo.createQueryBuilder('log');

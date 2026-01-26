@@ -30,7 +30,7 @@ export class Dashboard {
         allowDenyData: {
           labels: ['Allowed', 'Dropped'],
           datasets: [{
-            data: [Number(stats.allowed), Number(stats.droped)],
+            data: [Number(stats.allowed), Number(stats.dropped)],
             backgroundColor: CHART_COLORS.allowDeny
           }]
         },

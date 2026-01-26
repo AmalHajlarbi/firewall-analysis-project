@@ -13,7 +13,6 @@ import {
 
 import { FirewallType } from "src/logs/enums/firewall-type.enum";
 
-
 export class SearchLogsDto {
   
     @IsOptional()
@@ -73,4 +72,3 @@ export class SearchLogsDto {
     @IsString()
     fileId: string;
 }
-
