@@ -4,7 +4,7 @@ import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { SearchLogsDto } from './dto/search-logs.dto';
 import { FirewallLogEntity } from '../logs/entities/firewall-log.entity';
-import { FirewallLog } from '../logs/interfaces/firewall-log.interface';
+
 
 @Injectable()
 export class SearchService {

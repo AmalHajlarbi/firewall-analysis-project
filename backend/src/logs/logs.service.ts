@@ -7,6 +7,7 @@ import { validate } from 'class-validator';
 import { WindowsDefenderLogParser } from './parsers/windows-defender-log.parser';
 import { FirewallLogParser } from './parsers/firewall-log.parser';
 import { FirewallType } from './enums/firewall-type.enum';
+import { FortiGateLogParser } from './parsers/fortigate-log.parser';
 
 @Injectable()
 export class LogsService {
@@ -20,7 +21,7 @@ export class LogsService {
     // Parsers enregistrés (extensible)
     this.parsers = [
       new WindowsDefenderLogParser(),
-      // new FortigateLogParser() plus tard
+       new FortiGateLogParser(),
     ];
   }
 
@@ -38,7 +39,7 @@ export class LogsService {
 
     if (!parser) {
         console.log('Aucun parser compatible pour la ligne :', line.substring(0, 100) + '...');
-      return; // aucun parser compatible
+      return; 
     }
 
     const parsedDto = parser.parse(line);
@@ -71,13 +72,13 @@ export class LogsService {
     }
     
     console.log(entity);
-    console.log("khlatet")
+    
   }
 
 
 
   /**
-   * Traitement de plusieurs lignes (batch simple)
+   * Traitement de plusieurs lignes 
    */
 async processMultipleLines(lines: string[], selectedType: FirewallType, fileId: string): Promise<{
   processed: number;
@@ -100,7 +101,7 @@ async processMultipleLines(lines: string[], selectedType: FirewallType, fileId: 
       continue;
     }
 
-    await this.processLogLine(line, fileId); // ta méthode existante qui parse + save
+    await this.processLogLine(line, fileId); 
     processed++;
   }
 
@@ -120,67 +121,4 @@ async processMultipleLines(lines: string[], selectedType: FirewallType, fileId: 
 }
 
 
-
-/*   async processLinesWithTypeVerification(
-    lines: string[],
-    selectedType: FirewallType,
-  ): Promise<{
-    processed: number;
-    ignored: number;
-    warning?: string;
-  }> {
-    let processed = 0;
-    let ignored = 0;
-    let detectedType: FirewallType | null = null;
-
-    for (const line of lines) {
-      if (!line.trim()) {
-        ignored++;
-        continue;
-      }
-
-      const parser = this.parsers.find((p) => p.canParse(line));
-
-      if (!parser) {
-        ignored++;
-        continue;
-      }
-
-      // Récupération du type réel du parser (défini dans chaque classe de parser)
-      const parserType = parser.firewallType;
-
-      // Première détection du type → on le mémorise
-      if (detectedType === null) {
-        detectedType = parserType;
-      }
-
-      // Vérification : le type choisi par l'utilisateur doit correspondre au type détecté
-      if (parserType !== selectedType) {
-        throw new BadRequestException(
-          `Conflit de type de firewall : vous avez sélectionné "${selectedType}", mais le contenu du fichier correspond à "${parserType}".`,
-        );
-      }
-
-      // Tout est bon → on parse et sauvegarde
-      await this.processLogLine(line);
-      processed++;
-    }
-
-   const result: {
-    processed: number;
-    ignored: number;
-    warning?: string;
-  } = {
-    processed,
-    ignored,
-  };
-
-    // Cas où aucune ligne n'a été reconnue malgré un type valide
-    if (processed === 0 && lines.length > ignored) {
-      result.warning = 'Aucune ligne du fichier n\'a été reconnue comme un log valide pour le type sélectionné.';
-    }
-
-    return result;
-  }
- */
 }
