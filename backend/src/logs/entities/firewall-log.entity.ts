@@ -53,4 +53,7 @@ export class FirewallLogEntity {
 
   @CreateDateColumn({ type: 'datetime' })
   createdAt: Date;
+
+  @Column({ type: 'uuid'})
+  fileId: string;
 }

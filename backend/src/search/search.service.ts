@@ -3,8 +3,8 @@ import { Injectable } from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { SearchLogsDto } from './dto/search-logs.dto';
-import { FirewallLogEntity } from 'src/logs/entities/firewall-log.entity';
-import { FirewallLog } from 'src/logs/interfaces/firewall-log.interface';
+import { FirewallLogEntity } from '../logs/entities/firewall-log.entity';
+import { FirewallLog } from '../logs/interfaces/firewall-log.interface';
 
 @Injectable()
 export class SearchService {

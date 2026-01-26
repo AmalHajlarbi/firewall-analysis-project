@@ -19,6 +19,8 @@ import { PermissionsGuard } from '../auth/guards/permissions.guard';
 import { Permissions } from '../auth/decorators/permissions.decorator';
 import { Permission } from '../common/enums/role-permission.enum';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard'; // ensure JWT guard is applied first
+import { randomUUID } from 'crypto';
+import { Public } from 'src/auth/decorators/public.decorator';
 
 
 
@@ -68,6 +70,9 @@ export class LogsController {
 
     //const selectedType: FirewallType = firewallTypeStr;
 
+    const fileId = randomUUID();
+
+
     const fileStream = fs.createReadStream(file.path);
     const rl = readline.createInterface({
       input: fileStream,
@@ -79,7 +84,7 @@ export class LogsController {
       if (line.trim()) lines.push(line);
     }
 
-    const result = await this.logsService.processMultipleLines(lines, firewallType);
+    const result = await this.logsService.processMultipleLines(lines, firewallType, fileId);
   
     //await this.logsService.processMultipleLines(lines);
 
@@ -88,6 +93,7 @@ export class LogsController {
     console.log("upload yekhdem")
     return {
       message: 'Fichier traité avec succès',
+      fileId,
       linesProcessed: result.processed,
       linesIgnored: result.ignored,
       warning: result.warning,

@@ -27,7 +27,7 @@ export class LogsService {
   /**
    * Traite une ligne brute de log
    */
-  async processLogLine(line: string): Promise<void> {
+  async processLogLine(line: string, fileId: string): Promise<void> {
 
     if (!line.trim()) {
     console.log('Ligne vide ignorée');
@@ -60,6 +60,7 @@ export class LogsService {
         {...parsedDto,
             timestamp: parsedDto.timestamp,
             firewallType: parsedDto.firewallType,
+            fileId,
 
         });
     try{
@@ -78,7 +79,7 @@ export class LogsService {
   /**
    * Traitement de plusieurs lignes (batch simple)
    */
-async processMultipleLines(lines: string[], selectedType: FirewallType): Promise<{
+async processMultipleLines(lines: string[], selectedType: FirewallType, fileId: string): Promise<{
   processed: number;
   ignored: number;
   warning?: string;
@@ -99,7 +100,7 @@ async processMultipleLines(lines: string[], selectedType: FirewallType): Promise
       continue;
     }
 
-    await this.processLogLine(line); // ta méthode existante qui parse + save
+    await this.processLogLine(line, fileId); // ta méthode existante qui parse + save
     processed++;
   }
 
