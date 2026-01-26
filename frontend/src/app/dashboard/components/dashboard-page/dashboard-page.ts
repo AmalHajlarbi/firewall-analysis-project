@@ -7,8 +7,10 @@ import { BarChart } from '../bar-chart/bar-chart';
 import { ChartData, ChartOptions } from 'chart.js';
 import { Reports } from '../../../reports/services/reports';
 import { downloadBlob } from '../../../shared/utils/fcts.util';
-import { Filter } from '../../../filters/filter';
 import { signal,effect } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
+import { Store} from '../../../store/store';
+
 
 @Component({
   selector: 'app-dashboard-page',
@@ -18,7 +20,8 @@ import { signal,effect } from '@angular/core';
   styleUrls: ['./dashboard-page.css']
 })
 export class DashboardPage implements OnInit {
-
+  
+  
   allowDenyData = signal<ChartData<'pie'>>({ labels: ['Allowed', 'Dropped'], datasets: [{ data: [0, 0] }] });
   protocolData = signal<ChartData<'bar'>>({ labels: [], datasets: [{ data: [] }] });
   directionData = signal<ChartData<'bar'>>({ labels: [], datasets: [{ data: [] }] });
@@ -34,13 +37,14 @@ export class DashboardPage implements OnInit {
   constructor(
     private dashboardService: Dashboard,
     private reportsService: Reports,
-    private filterService: Filter
+    private store: Store,
+    private route: ActivatedRoute
   ) {}
 
   ngOnInit(): void {
-    const filters = this.filterService.filters();
-    this.loadStatistics(filters);
-    this.loadAnomalies(filters);
+    
+    this.loadStatistics(this.store.filters());
+    this.loadAnomalies(this.store.filters());
     
   }
 
@@ -66,7 +70,7 @@ export class DashboardPage implements OnInit {
   }
 
   downloadAnalysis(format: 'csv' | 'pdf') {
-    const filters = this.filterService.filters();
+    const filters = this.store.filters();
     this.reportsService.exportAnalysis(format, filters)
       .subscribe(blob => downloadBlob(blob, `logs.${format}`));
   }

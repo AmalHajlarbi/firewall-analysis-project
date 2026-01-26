@@ -5,6 +5,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { UploadResponse } from '../../interfaces/upload.interfaces';
 import { Router } from '@angular/router';
+import { Store} from '../../../store/store';
 
 
 
@@ -16,6 +17,7 @@ import { Router } from '@angular/router';
 })
 export class UploadPage {
   
+  
   selectedFile!: File | null;
   firewallType: FirewallType | null = null;
   supportedTypes: FirewallType[] = [];
@@ -24,7 +26,7 @@ export class UploadPage {
   errorMessage = signal<string | undefined>(undefined);
 
   constructor(private uploadService: Upload,  private cdr: ChangeDetectorRef,  private router: Router,
-) {}
+    public store: Store) {}
 
   ngOnInit() {
     this.loadSupportedFirewallTypes();
@@ -44,11 +46,17 @@ export class UploadPage {
         next: res => {
           this.uploadResult.set(res);
           this.isUploading.set(false);
+          console.log('Upload successful:', res);
+          this.store.setFilters({ fileId: res.fileId });
+          localStorage.setItem('lastFileId', res.fileId);
           setTimeout(() => {
-          this.router.navigate(['/logs']);
-      }, 1500); 
-          
-        },
+    this.router.navigate(['/logs'], {
+      queryParams: {
+        fileId: res.fileId   
+      }
+    });
+  }, 1000);
+},
         error: err => {
           this.errorMessage.set(err.message);
           this.isUploading.set(false);
@@ -59,7 +67,10 @@ export class UploadPage {
   loadSupportedFirewallTypes() {
     this.uploadService.getSupportedFirewallTypes()
       .subscribe({
-        next: types => this.supportedTypes = types,
+        next: types => {
+          this.supportedTypes = types;
+          this.store.setSupportedFirewallTypes(types);
+        },
         error: err => this.errorMessage.set(err.message),
       });
   }
