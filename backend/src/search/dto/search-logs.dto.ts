@@ -11,7 +11,8 @@ import {
   IsDateString,
 } from 'class-validator';
 
-import { FirewallType } from "src/logs/enums/firewall-type.enum";
+import { FirewallType } from 'src/logs/enums/firewall-type.enum';
+
 
 export class SearchLogsDto {
   

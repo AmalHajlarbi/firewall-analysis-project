@@ -8,6 +8,6 @@ import { FirewallLogEntity } from './entities/firewall-log.entity';
   imports: [TypeOrmModule.forFeature([FirewallLogEntity])],
   providers: [LogsService],
   controllers: [LogsController],
-  exports: [LogsService], // si d’autres modules ont besoin
+  exports: [LogsService], 
 })
 export class LogsModule {}
