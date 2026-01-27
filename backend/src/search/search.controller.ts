@@ -10,7 +10,7 @@ export class SearchController {
   
   @Get()
   @Public()
-  search(@Query() query: SearchLogsDto) {
+  async search(@Query() query: SearchLogsDto) {
     return this.searchService.search(query);
   }
 }
