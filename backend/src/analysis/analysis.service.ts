@@ -18,6 +18,9 @@ export class AnalysisService {
     private readonly repo: Repository<FirewallLogEntity>,
   ) {}
 
+  private normalizeDate(date?: string | Date): Date | undefined {
+    return date ? new Date(date) : undefined;
+  }
   // =========================
   // STATISTICS
   // =========================
@@ -25,15 +28,15 @@ export class AnalysisService {
     if (!filters.fileId) {
       throw new Error('fileId is required');
     }
+    
+    const from = this.normalizeDate(filters.from);
+    const to = this.normalizeDate(filters.to);
 
     const qb = this.repo.createQueryBuilder('log')
     .where('log.fileId = :fileId', { fileId: filters.fileId });
 
-    if (filters?.from) qb.andWhere('log.timestamp >= :from', { from: filters.from });
-    if (filters?.to) qb.andWhere('log.timestamp <= :to', { to: filters.to });
-    if (filters?.protocol) qb.andWhere('log.protocol = :protocol', { protocol: filters.protocol });
-    if (filters?.firewallType) qb.andWhere('log.firewallType = :firewallType', { firewallType: filters.firewallType });
-    if (filters?.direction) qb.andWhere('log.direction = :direction', { direction: filters.direction });
+    if (from) qb.andWhere('log.timestamp >= :from', { from });
+    if (to) qb.andWhere('log.timestamp <= :to', { to });
 
     const total = await qb.clone().getCount();
 
@@ -120,12 +123,16 @@ export class AnalysisService {
     if (!filters.fileId) {
       throw new Error('fileId is required');
     }
+
+    const from = this.normalizeDate(filters.from);
+    const to = this.normalizeDate(filters.to);
+
     const qb = this.repo.createQueryBuilder('log')
     .where('log.fileId = :fileId', { fileId: filters.fileId });
     
-    if (filters?.from) qb.andWhere('log.timestamp >= :from', { from: filters.from });
-    if (filters?.to) qb.andWhere('log.timestamp <= :to', { to: filters.to });
-
+    if (from) qb.andWhere('log.timestamp >= :from', { from });
+    if (to) qb.andWhere('log.timestamp <= :to', { to });
+    
     const anomalies: Anomaly[] = [];
 
     const multipleDrop = await qb.clone()

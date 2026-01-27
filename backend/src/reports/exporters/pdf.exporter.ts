@@ -1,6 +1,5 @@
 import PDFDocument from 'pdfkit';
 import { FirewallLogEntity } from 'src/logs/entities/firewall-log.entity';
-
 export function generatePdf(logs: FirewallLogEntity[]): Promise<Buffer> {
   return new Promise((resolve, reject) => {
     try {
@@ -19,7 +18,7 @@ export function generatePdf(logs: FirewallLogEntity[]): Promise<Buffer> {
       doc.moveDown(0.5);
 
       logs.forEach(log => {
-        const ts = new Date(log.timestamp).toLocaleString(); // date lisible
+        const ts = new Date(log.timestamp).toLocaleString(); 
         const line = `${ts.padEnd(24)} ${log.action.padEnd(8)} ${log.protocol.padEnd(8)} ${log.sourceIp.padEnd(10)} ${String(log.sourcePort).padEnd(10)} ${log.destinationIp.padEnd(10)} ${String(log.destinationPort).padEnd(10)}${log.firewallType.padEnd(8)}`;
         doc.text(line);
       });
