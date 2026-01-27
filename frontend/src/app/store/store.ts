@@ -19,25 +19,10 @@ export class Store {
     to: '',
     fileId: '',
   });
+  
   /*
-  setFilters(partial: Partial<LogFilters>) {
-  const normalized: Partial<LogFilters> = { ...partial };
-
-  if (partial.from) {
-    normalized.from = new Date(partial.from).toISOString();
-  }
-
-  if (partial.to) {
-    normalized.to = new Date(partial.to).toISOString();
-  }
-
-  this.filters.set({
-    ...this.filters(),
-    ...normalized
-  });
-}
-  */
 setFilters(partial: Partial<LogFilters>) {
+  console.log('Setting filters with partial:', partial);
   const normalized: Partial<LogFilters> = { ...partial };
 
   if (partial.from) {
@@ -58,6 +43,20 @@ setFilters(partial: Partial<LogFilters>) {
   const d = new Date(value);
   return d.toISOString().split('.')[0]; // YYYY-MM-DDTHH:mm:ss
 }
+  
+ private isoRegex = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}$/;
+*/
+setFilters(partial: Partial<LogFilters>) {
+  
+
+  
+
+  this.filters.set({
+    ...this.filters(),
+    ...partial
+  });
+}
+
 
 
   

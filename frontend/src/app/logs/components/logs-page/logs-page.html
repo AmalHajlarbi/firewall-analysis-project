@@ -97,31 +97,37 @@
           </select>
         </div>
 
+        
+
         <!-- From -->
-        <div class="col-md-2">
-          
-          <input
-  type="datetime-local"
-  class="form-control"
-  step="1"
-  [ngModel]="store.filters().from"
-  (ngModelChange)="store.setFilters({ from: $event })"
-/>
+<div class="col-md-2">
+  <input
+    type="text"
+    class="form-control"
+    placeholder="from YYYY-MM-DDTHH:mm:ss"
+    pattern="\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}"
+    title="Format requis : YYYY-MM-DDTHH:mm:ss"
+    [ngModel]="store.filters().from"
+    (ngModelChange)="store.setFilters({ from: $event })"
+  />
+</div>
 
+<!-- To -->
+<div class="col-md-2">
 
-        </div>
+  <input
+    type="text"
+    class="form-control"
+    
+    placeholder="to YYYY-MM-DDTHH:mm:ss"
+    pattern="\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}"
+    title="to : YYYY-MM-DDTHH:mm:ss"
+    
+    [ngModel]="store.filters().to"
+    (ngModelChange)="store.setFilters({ to: $event })"
+  />
+</div>
 
-        <!-- To -->
-        <div class="col-md-2">
-          <input
-  type="datetime-local"
-  class="form-control"
-  step="1"
-  [ngModel]="store.filters().to"
-  (ngModelChange)="store.setFilters({ to: $event })"
-/>
-
-        </div>
 
         <!-- Search Button -->
         <div class="col-md-2">
