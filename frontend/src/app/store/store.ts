@@ -19,36 +19,16 @@ export class Store {
     to: '',
     fileId: '',
   });
-  
-  /*
-setFilters(partial: Partial<LogFilters>) {
-  console.log('Setting filters with partial:', partial);
-  const normalized: Partial<LogFilters> = { ...partial };
-
-  if (partial.from) {
-    normalized.from = this.toIsoWithoutMs(partial.from);
+  constructor() {
+    // Charger depuis localStorage au démarrage
+    const savedTypes = localStorage.getItem('supportedFirewallTypes');
+    if (savedTypes) {
+      this.supportedFirewallTypes.set(JSON.parse(savedTypes));
+    }
   }
-
-  if (partial.to) {
-    normalized.to = this.toIsoWithoutMs(partial.to);
-  }
-
-  this.filters.set({
-    ...this.filters(),
-    ...normalized
-  });
-}
-
- toIsoWithoutMs(value: string): string {
-  const d = new Date(value);
-  return d.toISOString().split('.')[0]; // YYYY-MM-DDTHH:mm:ss
-}
   
- private isoRegex = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}$/;
-*/
 setFilters(partial: Partial<LogFilters>) {
   
-
   
 
   this.filters.set({
@@ -57,6 +37,7 @@ setFilters(partial: Partial<LogFilters>) {
   });
 }
 
+ 
 
 
   
@@ -78,6 +59,7 @@ setFilters(partial: Partial<LogFilters>) {
   supportedFirewallTypes = signal<FirewallType[]>([]);
   setSupportedFirewallTypes(types: FirewallType[]) {
     this.supportedFirewallTypes.set(types);
+    localStorage.setItem('supportedFirewallTypes', JSON.stringify(types));
   }
   
   

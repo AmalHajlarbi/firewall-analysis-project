@@ -9,131 +9,180 @@
 
       <h5 class="mb-3">Logs filter</h5>
 
-      <div class="row g-2 mb-3">
-        <!-- Action -->
-        <div class="col-md-2">
-          <select class="form-select"
-            [ngModel]="store.filters().action"
-            (ngModelChange)="store.setFilters({ action: $event })"
-          >
-            <option value="">Action</option>
-            <option value="ALLOW">ALLOW</option>
-            <option value="DROP">DROP</option>
-          </select>
-        </div>
+      <form #searchForm="ngForm" novalidate>
+  <div class="row g-2 mb-3">
 
-        <!-- Protocol -->
-        <div class="col-md-2">
-          <select class="form-select"
-            [ngModel]="store.filters().protocol"
-            (ngModelChange)="store.setFilters({ protocol: $event })"
-          >
-            <option value="">Protocole</option>
-            <option value="TCP">TCP</option>
-            <option value="UDP">UDP</option>
-            <option value="ICMP">ICMP</option>
-          </select>
-        </div>
+    <!-- Action -->
+    <div class="col-md-2">
+      <select
+        class="form-select"
+        name="action"
+        [ngModel]="store.filters().action"
+        (ngModelChange)="store.setFilters({ action: $event })">
+        <option value="">Action</option>
+        <option value="ALLOW">ALLOW</option>
+        <option value="DROP">DROP</option>
+      </select>
+    </div>
 
-        <!-- Source IP -->
-        <div class="col-md-2">
-          <input class="form-control"
-            placeholder="Source IP"
-            [ngModel]="store.filters().sourceIp"
-            (ngModelChange)="store.setFilters({ sourceIp: $event })"
-          />
-        </div>
+    <!-- Protocol -->
+    <div class="col-md-2">
+      <select
+        class="form-select"
+        name="protocol"
+        [ngModel]="store.filters().protocol"
+        (ngModelChange)="store.setFilters({ protocol: $event })">
+        <option value="">Protocole</option>
+        <option value="TCP">TCP</option>
+        <option value="UDP">UDP</option>
+        <option value="ICMP">ICMP</option>
+      </select>
+    </div>
 
-        <!-- Destination IP -->
-        <div class="col-md-2">
-          <input class="form-control"
-            placeholder="Destination IP"
-            [ngModel]="store.filters().destinationIp"
-            (ngModelChange)="store.setFilters({ destinationIp: $event })"
-          />
-        </div>
+    <!-- Source IP -->
+    <div class="col-md-2">
+      <input
+        class="form-control"
+        name="sourceIp"
+        placeholder="Source IP"
+        [ngModel]="store.filters().sourceIp"
+        (ngModelChange)="store.setFilters({ sourceIp: $event })"
+      />
+    </div>
 
-        <!-- Source Port -->
-        <div class="col-md-2">
-          <input class="form-control" type="number" placeholder="Port source"
-            [ngModel]="store.filters().sourcePort"
-            (ngModelChange)="store.setFilters({ sourcePort: $event })"
-          />
-        </div>
+    <!-- Destination IP -->
+    <div class="col-md-2">
+      <input
+        class="form-control"
+        name="destinationIp"
+        placeholder="Destination IP"
+        [ngModel]="store.filters().destinationIp"
+        (ngModelChange)="store.setFilters({ destinationIp: $event })"
+      />
+    </div>
 
-        <!-- Destination Port -->
-        <div class="col-md-2">
-          <input class="form-control" type="number" placeholder="Port destination"
-            [ngModel]="store.filters().destinationPort"
-            (ngModelChange)="store.setFilters({ destinationPort: $event })"
-          />
-        </div>
-
-        <!-- Firewall Type -->
-        <div class="col-md-2">
-          <select class="form-select"
-            [ngModel]="store.filters().firewallType"
-            (ngModelChange)="store.setFilters({ firewallType: $event })"
-          >
-            <option value="">Type FW</option>
-            <option *ngFor="let type of store.supportedFirewallTypes()"
-        [ngValue]="type">
-  {{ type }}
-</option>
-          </select>
-        </div>
-
-        <!-- Direction -->
-        <div class="col-md-2">
-          <select class="form-select"
-            [ngModel]="store.filters().direction"
-            (ngModelChange)="store.setFilters({ direction: $event })"
-          >
-            <option value="">Direction</option>
-            <option value="INBOUND">INBOUND</option>
-            <option value="OUTBOUND">OUTBOUND</option>
-            <option value="SEND">SEND</option>
-            <option value="RECEIVE">RECEIVE</option>
-          </select>
-        </div>
-
-        
-
-        <!-- From -->
-<div class="col-md-2">
-  <input
-    type="text"
-    class="form-control"
-    placeholder="from YYYY-MM-DDTHH:mm:ss"
-    pattern="\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}"
-    title="Format requis : YYYY-MM-DDTHH:mm:ss"
-    [ngModel]="store.filters().from"
-    (ngModelChange)="store.setFilters({ from: $event })"
-  />
-</div>
-
-<!-- To -->
-<div class="col-md-2">
-
-  <input
-    type="text"
-    class="form-control"
-    
-    placeholder="to YYYY-MM-DDTHH:mm:ss"
-    pattern="\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}"
-    title="to : YYYY-MM-DDTHH:mm:ss"
-    
-    [ngModel]="store.filters().to"
-    (ngModelChange)="store.setFilters({ to: $event })"
-  />
-</div>
-
-
-        <!-- Search Button -->
-        <div class="col-md-2">
-          <button class="btn btn-primary w-100" (click)="search()">Search</button>
-        </div>
+    <!-- Source Port -->
+    <div class="col-md-2">
+      <input
+        type="number"
+        class="form-control"
+        name="sourcePort"
+        placeholder="Port source"
+        min="1"
+        max="65535"
+        #sourcePortInput="ngModel"
+        [ngModel]="store.filters().sourcePort"
+        (ngModelChange)="store.setFilters({ sourcePort: $event })"
+      />
+      <div class="text-danger" *ngIf="sourcePortInput.invalid && sourcePortInput.touched">
+        invalid format (1-65535)
       </div>
+    </div>
+
+    <!-- Destination Port -->
+    <div class="col-md-2">
+      <input
+        type="number"
+        class="form-control"
+        name="destinationPort"
+        placeholder="Port destination"
+        min="1"
+        max="65535"
+        #destinationPortInput="ngModel"
+        [ngModel]="store.filters().destinationPort"
+        (ngModelChange)="store.setFilters({ destinationPort: $event })"
+      />
+      <div class="text-danger" *ngIf="destinationPortInput.invalid && destinationPortInput.touched">
+        invalid format (1-65535)
+      </div>
+    </div>
+
+    <!-- Firewall Type -->
+    <div class="col-md-2">
+      <select
+        class="form-select"
+        name="firewallType"
+        [ngModel]="store.filters().firewallType"
+        (ngModelChange)="store.setFilters({ firewallType: $event })">
+        <option value="">Type FW</option>
+        <option *ngFor="let type of store.supportedFirewallTypes()" [ngValue]="type">
+          {{ type }}
+        </option>
+      </select>
+    </div>
+
+    <!-- Direction -->
+    <div class="col-md-2">
+      <select
+        class="form-select"
+        name="direction"
+        [ngModel]="store.filters().direction"
+        (ngModelChange)="store.setFilters({ direction: $event })">
+        <option value="">Direction</option>
+        <option value="INBOUND">INBOUND</option>
+        <option value="OUTBOUND">OUTBOUND</option>
+        <option value="SEND">SEND</option>
+        <option value="RECEIVE">RECEIVE</option>
+      </select>
+    </div>
+
+    <!-- From -->
+    <div class="col-md-2">
+      <input
+        type="text"
+        class="form-control"
+        name="from"
+        placeholder="from AAAA-MM-JJTHH:MM:SSZ"
+        pattern="\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z"
+        title="Format requis : AAAA-MM-JJTHH:MM:SSZ"
+        #fromInput="ngModel"
+        [ngModel]="store.filters().from"
+        (ngModelChange)="store.setFilters({ from: $event })"
+      />
+      <div class="text-danger" *ngIf="fromInput.invalid && fromInput.touched">
+        invalid format (ex: 2025-12-26T21:32:00Z)
+      </div>
+    </div>
+
+    <!-- To -->
+    <div class="col-md-2">
+      <input
+        type="text"
+        class="form-control"
+        name="to"
+        placeholder="to AAAA-MM-JJTHH:MM:SSZ"
+        pattern="\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z"
+        title="Format requis : AAAA-MM-JJTHH:MM:SSZ"
+        #toInput="ngModel"
+        [ngModel]="store.filters().to"
+        (ngModelChange)="store.setFilters({ to: $event })"
+      />
+      <div class="text-danger" *ngIf="toInput.invalid && toInput.touched">
+        invalid format (ex: 2025-12-26T21:32:00Z)
+      </div>
+      <div class="col-md-12" *ngIf="store.filters().from && store.filters().to && isFromGreaterThanTo()">
+    <div class="text-danger">
+      From must be before To
+    </div>
+  </div>
+    </div>
+    
+  
+
+    <!-- Search Button -->
+    <div class="col-md-2">
+      <button
+        class="btn btn-primary w-100"
+        type="button"
+        (click)="search()"
+        [disabled]="searchForm.invalid || (store.filters().from && store.filters().to && isFromGreaterThanTo())">
+        Search
+      </button>
+    </div>
+
+  </div>
+</form>
+
 
       <!-- Logs Table -->
       <h5 class="mb-3">Logs</h5>

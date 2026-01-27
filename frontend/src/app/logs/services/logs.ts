@@ -27,35 +27,7 @@ export class Logs {
 }
 
 
-  /*
-  searchLogs(
-    page: number,
-    limit: number,
-    filters: LogFilters
-  ): Observable<LogsSearchResponse> {
-    const params = this.buildSearchParams(page, limit, filters);
-
-    return this.http
-      .get<LogsSearchResponse>(`${this.apiUrl}/search`, { params })
-      .pipe(catchError(this.handleError));
-  }
   
-  private buildSearchParams(
-    page: number,
-    limit: number,
-    filters: LogFilters
-  ): any {
-    const params: any = { page, limit };
-
-    Object.entries(filters).forEach(([key, value]) => {
-      if (value !== '' && value !== null && value !== undefined) {
-        params[key] = value;
-      }
-    });
-
-    return params;
-  }
-    */
    private buildSearchParams(
   page: number,
   limit: number,
@@ -86,4 +58,5 @@ export class Logs {
       responseType: 'blob'  
     });
   }
+  
 }

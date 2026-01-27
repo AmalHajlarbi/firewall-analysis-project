@@ -70,6 +70,7 @@ export class UploadPage {
         next: types => {
           this.supportedTypes = types;
           this.store.setSupportedFirewallTypes(types);
+          
         },
         error: err => this.errorMessage.set(err.message),
       });
