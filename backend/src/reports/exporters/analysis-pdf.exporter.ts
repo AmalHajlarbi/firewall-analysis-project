@@ -20,7 +20,7 @@ export function generateAnalysisPdf(
       doc.fontSize(14).text('=== STATISTICS ===');
       doc.fontSize(12).text(`Total Logs: ${stats.total}`);
       doc.text(`Allowed Logs: ${stats.allowed}`);
-      doc.text(`Dropped Logs: ${stats.droped}`);
+      doc.text(`Dropped Logs: ${stats.dropped}`);
       doc.moveDown();
 
       doc.text('Logs by Protocol:');
@@ -53,7 +53,7 @@ export function generateAnalysisPdf(
       doc.fontSize(14).text('=== ANOMALIES ===');
       anomalies.anomalies.forEach(a => {
         const id = a.ip || a.firewallType || a.time || '';
-        const value = a.count || a.ports || '';
+        const value = a.count ?? a.ports ?? '';
         doc.fontSize(12).text(`- ${a.type} [${id}]: Level=${a.level}, Count=${value}`);
       });
 

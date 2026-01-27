@@ -13,8 +13,8 @@
         <!-- Action -->
         <div class="col-md-2">
           <select class="form-select"
-            [ngModel]="filterService.filters().action"
-            (ngModelChange)="filterService.setFilters({ action: $event })"
+            [ngModel]="store.filters().action"
+            (ngModelChange)="store.setFilters({ action: $event })"
           >
             <option value="">Action</option>
             <option value="ALLOW">ALLOW</option>
@@ -25,8 +25,8 @@
         <!-- Protocol -->
         <div class="col-md-2">
           <select class="form-select"
-            [ngModel]="filterService.filters().protocol"
-            (ngModelChange)="filterService.setFilters({ protocol: $event })"
+            [ngModel]="store.filters().protocol"
+            (ngModelChange)="store.setFilters({ protocol: $event })"
           >
             <option value="">Protocole</option>
             <option value="TCP">TCP</option>
@@ -39,8 +39,8 @@
         <div class="col-md-2">
           <input class="form-control"
             placeholder="Source IP"
-            [ngModel]="filterService.filters().sourceIp"
-            (ngModelChange)="filterService.setFilters({ sourceIp: $event })"
+            [ngModel]="store.filters().sourceIp"
+            (ngModelChange)="store.setFilters({ sourceIp: $event })"
           />
         </div>
 
@@ -48,43 +48,46 @@
         <div class="col-md-2">
           <input class="form-control"
             placeholder="Destination IP"
-            [ngModel]="filterService.filters().destinationIp"
-            (ngModelChange)="filterService.setFilters({ destinationIp: $event })"
+            [ngModel]="store.filters().destinationIp"
+            (ngModelChange)="store.setFilters({ destinationIp: $event })"
           />
         </div>
 
         <!-- Source Port -->
         <div class="col-md-2">
           <input class="form-control" type="number" placeholder="Port source"
-            [ngModel]="filterService.filters().sourcePort"
-            (ngModelChange)="filterService.setFilters({ sourcePort: $event })"
+            [ngModel]="store.filters().sourcePort"
+            (ngModelChange)="store.setFilters({ sourcePort: $event })"
           />
         </div>
 
         <!-- Destination Port -->
         <div class="col-md-2">
           <input class="form-control" type="number" placeholder="Port destination"
-            [ngModel]="filterService.filters().destinationPort"
-            (ngModelChange)="filterService.setFilters({ destinationPort: $event })"
+            [ngModel]="store.filters().destinationPort"
+            (ngModelChange)="store.setFilters({ destinationPort: $event })"
           />
         </div>
 
         <!-- Firewall Type -->
         <div class="col-md-2">
           <select class="form-select"
-            [ngModel]="filterService.filters().firewallType"
-            (ngModelChange)="filterService.setFilters({ firewallType: $event })"
+            [ngModel]="store.filters().firewallType"
+            (ngModelChange)="store.setFilters({ firewallType: $event })"
           >
             <option value="">Type FW</option>
-            <option *ngFor="let type of supportedTypes" [ngValue]="type">{{ type }}</option>
+            <option *ngFor="let type of store.supportedFirewallTypes()"
+        [ngValue]="type">
+  {{ type }}
+</option>
           </select>
         </div>
 
         <!-- Direction -->
         <div class="col-md-2">
           <select class="form-select"
-            [ngModel]="filterService.filters().direction"
-            (ngModelChange)="filterService.setFilters({ direction: $event })"
+            [ngModel]="store.filters().direction"
+            (ngModelChange)="store.setFilters({ direction: $event })"
           >
             <option value="">Direction</option>
             <option value="INBOUND">INBOUND</option>
@@ -96,18 +99,28 @@
 
         <!-- From -->
         <div class="col-md-2">
-          <input type="datetime-local" class="form-control"
-            [ngModel]="filterService.filters().from"
-            (ngModelChange)="filterService.setFilters({ from: $event })"
-          />
+          
+          <input
+  type="datetime-local"
+  class="form-control"
+  step="1"
+  [ngModel]="store.filters().from"
+  (ngModelChange)="store.setFilters({ from: $event })"
+/>
+
+
         </div>
 
         <!-- To -->
         <div class="col-md-2">
-          <input type="datetime-local" class="form-control"
-            [ngModel]="filterService.filters().to"
-            (ngModelChange)="filterService.setFilters({ to: $event })"
-          />
+          <input
+  type="datetime-local"
+  class="form-control"
+  step="1"
+  [ngModel]="store.filters().to"
+  (ngModelChange)="store.setFilters({ to: $event })"
+/>
+
         </div>
 
         <!-- Search Button -->

@@ -3,6 +3,12 @@ import { IsDateString, IsEnum, IsInt, IsIP, IsOptional, IsString, Min } from "cl
 import { FirewallType } from "src/logs/enums/firewall-type.enum";
 
 
+export enum ReportFormat {
+  CSV = 'csv',
+  PDF = 'pdf',
+}
+
+
 export class ReportQueryDto {
   @IsOptional()
   @IsDateString()
@@ -30,9 +36,17 @@ export class ReportQueryDto {
 
   @IsOptional()
   @IsString()
-  direction?: string;
+  protocol: string; 
 
   @IsOptional()
   @IsString()
-  format?: 'csv' | 'pdf';
+  direction?: string;
+
+  @IsOptional()
+  @IsEnum(ReportFormat)
+  format?: ReportFormat;
+
+  @IsOptional()  
+  @IsString()
+  fileId: string;
 }
