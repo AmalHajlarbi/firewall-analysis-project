@@ -91,4 +91,17 @@ export class LogsPage implements OnInit {
     this.reportsService.exportLogs(format, this.store.filters())
       .subscribe(blob => downloadBlob(blob, `logs.${format}`));
   }
+  isFromGreaterThanTo(): boolean {
+  const from = this.store.filters().from;
+  const to = this.store.filters().to;
+
+  if (!from || !to) return false;
+
+  // Convertit en Date pour comparer
+  const fromDate = new Date(from);
+  const toDate = new Date(to);
+
+  return fromDate > toDate; // true si from est après to
+}
+
 }
