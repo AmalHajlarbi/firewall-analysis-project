@@ -17,7 +17,7 @@ export class ReportsService {
     private readonly analysisService: AnalysisService,
   ) {}
   // =========================
-  // LOGS BRUTS
+  // LOGS BRUTS -> PDF et CSV
   // =========================
   private getFilteredLogs(query: ReportQueryDto): Promise<FirewallLogEntity[]> {
     if (!query.fileId) {
@@ -26,11 +26,31 @@ export class ReportsService {
     const qb = this.logRepository.createQueryBuilder('log');
     qb.where('log.fileId = :fileId', { fileId: query.fileId });
 
-    if (query.from) qb.andWhere('log.timestamp >= :from', { from: query.from });
-    if (query.to) qb.andWhere('log.timestamp <= :to', { to: query.to });
-    if (query.firewallType) qb.andWhere('log.firewallType = :fw', { fw: query.firewallType });
-    if (query.action) qb.andWhere('log.action = :action', { action: query.action });
-    if (query.sourceIp) qb.andWhere('log.sourceIp = :ip', { ip: query.sourceIp });
+    if (query.from) {
+    const fromDate = new Date(query.from); 
+    qb.andWhere('log.timestamp >= :from', { from: fromDate });
+    }
+
+    if (query.to) {
+      const toDate = new Date(query.to);
+      qb.andWhere('log.timestamp <= :to', { to: toDate });
+    }
+
+    if (query.firewallType) {
+      qb.andWhere('log.firewallType = :fw', { fw: query.firewallType });
+    }
+
+    if (query.action) {
+      qb.andWhere('log.action = :action', { action: query.action });
+    }
+
+    if (query.sourceIp) {
+      qb.andWhere('log.sourceIp = :ip', { ip: query.sourceIp });
+    }
+    if (query.direction) qb.andWhere('log.direction = :direction', { direction: query.direction });
+
+    qb.orderBy('log.timestamp', 'ASC'); 
+    
     return qb.getMany();
   }
   
@@ -46,7 +66,7 @@ export class ReportsService {
   }
 
   // =========================
-  // STATISTICS + ANOMALIES 
+  // STATISTICS + ANOMALIES -> PDF et CSV
   // =========================
   private mapToAnalysisFilters(query: ReportQueryDto) {
   const { fileId, from, to, firewallType, direction } = query;
