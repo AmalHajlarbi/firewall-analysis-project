@@ -11,8 +11,8 @@ export enum Permission {
   // Log management
   UPLOAD_LOGS = 'upload_logs',
   VIEW_LOGS = 'view_logs',
-  //ANALYZE_LOGS = 'analyze_logs',
-  //EXPORT_LOGS = 'export_logs',
+  ANALYZE_LOGS = 'analyze_logs',
+  EXPORT_LOGS = 'export_logs',
   
   // Dashboard
   //VIEW_DASHBOARD = 'view_dashboard',
