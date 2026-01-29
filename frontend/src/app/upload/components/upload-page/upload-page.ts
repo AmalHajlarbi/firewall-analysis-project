@@ -24,6 +24,7 @@ export class UploadPage {
   isUploading = signal(false);
   uploadResult = signal<UploadResponse | undefined>(undefined)
   errorMessage = signal<string | undefined>(undefined);
+  store: any;
 
 /////////////////////////////
 constructor(
