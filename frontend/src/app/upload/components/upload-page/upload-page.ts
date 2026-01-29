@@ -24,14 +24,14 @@ export class UploadPage {
   isUploading = signal(false);
   uploadResult = signal<UploadResponse | undefined>(undefined)
   errorMessage = signal<string | undefined>(undefined);
-  store: any;
 
 /////////////////////////////
 constructor(
   private uploadService: Upload,
   private cdr: ChangeDetectorRef,
   private auth: AuthService,
-  private router: Router
+  private router: Router,
+  public store: Store
 ) {}
 
 
