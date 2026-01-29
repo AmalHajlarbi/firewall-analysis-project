@@ -6,7 +6,7 @@ import { FormsModule } from '@angular/forms';
 import { UploadResponse } from '../../interfaces/upload.interfaces';
 import { Router } from '@angular/router';
 
-
+import { AuthService } from '../../../auth/services/auth';
 
 @Component({
   selector: 'app-upload-page',
@@ -23,8 +23,14 @@ export class UploadPage {
   uploadResult = signal<UploadResponse | undefined>(undefined)
   errorMessage = signal<string | undefined>(undefined);
 
-  constructor(private uploadService: Upload,  private cdr: ChangeDetectorRef,  private router: Router,
+/////////////////////////////
+constructor(
+  private uploadService: Upload,
+  private cdr: ChangeDetectorRef,
+  private auth: AuthService,
+  private router: Router
 ) {}
+
 
   ngOnInit() {
     this.loadSupportedFirewallTypes();
@@ -81,5 +87,25 @@ export class UploadPage {
     this.selectedFile = file;
     this.errorMessage.set(undefined);
   }
+
+  ///////////////////////////////////////
+onLogout() {
+  const confirmed = window.confirm('Are you sure you want to log out?');
+
+  if (!confirmed) {
+    return;
+  }
+
+  this.auth.logout().subscribe({
+    next: () => {
+      this.router.navigate(['/login']);
+    },
+    error: () => {
+      // Even if backend fails, still log out locally
+      this.auth.clearTokens();
+      this.router.navigate(['/login']);
+    }
+  });
+}
 
 }
