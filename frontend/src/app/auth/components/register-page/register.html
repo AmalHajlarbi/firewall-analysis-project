@@ -1,0 +1,64 @@
+<div class="video-container">
+  <video autoplay muted loop playsinline preload="auto">
+    <source src="login-bg.mp4" type="video/mp4" />
+  </video>
+</div>
+<div class="auth-wrap">
+  <div class="auth-card">
+    <h1>Create account</h1>
+    <p class="subtitle">It takes less than a minute</p>
+
+    <form (ngSubmit)="onSubmit()" #f="ngForm">
+      <label>Email</label>
+      <input
+        name="email"
+        type="email"
+        [(ngModel)]="email"
+        required
+        autocomplete="email"
+        placeholder="you@example.com"
+      />
+
+      <label>Username</label>
+      <input
+        name="username"
+        type="text"
+        [(ngModel)]="username"
+        required
+        autocomplete="username"
+        placeholder="yourname"
+      />
+
+      <label>Password</label>
+      <input
+        name="password"
+        type="password"
+        [(ngModel)]="password"
+        required
+        autocomplete="new-password"
+        placeholder="••••••••"
+      />
+
+      <label>Confirm password</label>
+      <input
+        name="confirmPassword"
+        type="password"
+        [(ngModel)]="confirmPassword"
+        required
+        autocomplete="new-password"
+        placeholder="••••••••"
+      />
+
+      <div *ngIf="error" class="error">{{ error }}</div>
+
+      <button type="submit" [disabled]="loading || !f.valid">
+        {{ loading ? 'Creating...' : 'Register' }}
+      </button>
+    </form>
+
+    <div class="footer">
+      <span>Already have an account?</span>
+      <a routerLink="/login">Login</a>
+    </div>
+  </div>
+</div>
