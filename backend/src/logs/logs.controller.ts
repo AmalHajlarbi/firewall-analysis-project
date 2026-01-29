@@ -18,13 +18,21 @@ import { UseGuards } from '@nestjs/common';
 import { PermissionsGuard } from '../auth/guards/permissions.guard';
 import { Permissions } from '../auth/decorators/permissions.decorator';
 import { Permission } from '../common/enums/role-permission.enum';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard'; // ensure JWT guard is applied first
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard'; 
 import { randomUUID } from 'crypto';
 import { Public } from 'src/auth/decorators/public.decorator';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiConsumes,
+  ApiBody,
+  ApiResponse,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 
 
-
-
+@ApiTags('Logs')
+@ApiBearerAuth()
 @Controller('logs')
 export class LogsController {
   constructor(private readonly logsService: LogsService) {}
@@ -33,10 +41,10 @@ export class LogsController {
    * Upload d'un fichier log
    */
 
-
+  @Public()
   @Post('upload')
-  @UseGuards(JwtAuthGuard, PermissionsGuard)
-  @Permissions(Permission.UPLOAD_LOGS)
+  //@UseGuards(JwtAuthGuard, PermissionsGuard)
+  //@Permissions(Permission.UPLOAD_LOGS)
   @UseInterceptors(
     FileInterceptor('file', {
       storage: diskStorage({
@@ -46,9 +54,36 @@ export class LogsController {
       limits: { fileSize: 10 * 1024 * 1024 }, // 10MB max
     }),
   )
+    @ApiOperation({ summary: 'Uploader un fichier de logs firewall' })
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      required: ['file', 'firewallType'],
+      properties: {
+        file: {
+          type: 'string',
+          format: 'binary',
+        },
+        firewallType: {
+          type: 'string',
+          enum: Object.values(FirewallType),
+          example: FirewallType.WINDOWS_DEFENDER,
+        },
+      },
+    },
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Fichier traité avec succès',
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Fichier invalide ou firewallType incorrect',
+  })
   async uploadFile(
     @UploadedFile() file: Express.Multer.File,
-    //@Body() body: UploadLogDto,
+    
     @Body('firewallType') firewallTypeStr: string,
 
 ) {
@@ -68,7 +103,7 @@ export class LogsController {
       );
     }
 
-    //const selectedType: FirewallType = firewallTypeStr;
+    
 
     const fileId = randomUUID();
 
@@ -86,11 +121,11 @@ export class LogsController {
 
     const result = await this.logsService.processMultipleLines(lines, firewallType, fileId);
   
-    //await this.logsService.processMultipleLines(lines);
+    
 
     // Supprimer le fichier temporaire
     fs.unlinkSync(file.path);
-    console.log("upload yekhdem")
+    
     return {
       message: 'Fichier traité avec succès',
       fileId,
@@ -101,13 +136,22 @@ export class LogsController {
   }
 
 
+    /**
+   * Types de firewalls supportés
+   */
+
+@Public()
 @Get('supported-types')
-@UseGuards(JwtAuthGuard, PermissionsGuard)
-@Permissions(Permission.VIEW_LOGS)
+//@UseGuards(JwtAuthGuard, PermissionsGuard)
+//@Permissions(Permission.VIEW_LOGS)
+@ApiOperation({ summary: 'Lister les types de firewall supportés' })
+  @ApiResponse({
+    status: 200,
+    description: 'Liste des types supportés',
+  })
   getSupportedTypes() {
     return Object.values(FirewallType);
   }
 
 
 }
-

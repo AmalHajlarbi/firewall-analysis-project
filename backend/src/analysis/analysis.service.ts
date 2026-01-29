@@ -3,8 +3,13 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { FirewallLogEntity } from 'src/logs/entities/firewall-log.entity';
 import { AnalysisFilterDto } from './dto/analysis-filter.dto';
-import { Anomaly, AlertLevel, AnomalyResponse } from './interfaces/anomaly-response.interface';
+import { Anomaly, AlertLevel, AnomalyResponse, AnomalyType } from './interfaces/anomaly-response.interface';
 import { StatisticsResponse } from './interfaces/statistics-response.interface';
+
+const ANOMALY_THRESHOLDS = {
+  MULTIPLE_DROP_COUNT: 50,
+  BRUTE_FORCE_PORTS: 20,
+};
 
 @Injectable()
 export class AnalysisService {
@@ -13,17 +18,25 @@ export class AnalysisService {
     private readonly repo: Repository<FirewallLogEntity>,
   ) {}
 
+  private normalizeDate(date?: string | Date): Date | undefined {
+    return date ? new Date(date) : undefined;
+  }
   // =========================
   // STATISTICS
   // =========================
-  async statistics(filters?: AnalysisFilterDto): Promise<StatisticsResponse> {
-    const qb = this.repo.createQueryBuilder('log');
+  async statistics(filters: AnalysisFilterDto): Promise<StatisticsResponse> {
+    if (!filters.fileId) {
+      throw new Error('fileId is required');
+    }
+    
+    const from = this.normalizeDate(filters.from);
+    const to = this.normalizeDate(filters.to);
 
-    if (filters?.from) qb.andWhere('log.timestamp >= :from', { from: filters.from });
-    if (filters?.to) qb.andWhere('log.timestamp <= :to', { to: filters.to });
-    if (filters?.protocol) qb.andWhere('log.protocol = :protocol', { protocol: filters.protocol });
-    if (filters?.firewallType) qb.andWhere('log.firewallType = :firewallType', { firewallType: filters.firewallType });
-    if (filters?.direction) qb.andWhere('log.direction = :direction', { direction: filters.direction });
+    const qb = this.repo.createQueryBuilder('log')
+    .where('log.fileId = :fileId', { fileId: filters.fileId });
+
+    if (from) qb.andWhere('log.timestamp >= :from', { from });
+    if (to) qb.andWhere('log.timestamp <= :to', { to });
 
     const total = await qb.clone().getCount();
 
@@ -31,7 +44,7 @@ export class AnalysisService {
       .andWhere("log.action = 'ALLOW'")
       .getCount();
 
-    const droped = await qb.clone()
+    const dropped = await qb.clone()
       .andWhere("log.action = 'DROP'")
       .getCount();
 
@@ -91,7 +104,7 @@ export class AnalysisService {
     return {
       total,
       allowed,
-      droped,
+      dropped,
       byProtocol,
       ratioByProtocol,
       byDirection,
@@ -106,25 +119,35 @@ export class AnalysisService {
   // =========================
   // ANOMALIES
   // =========================
-  async detectAnomalies(filters?: AnalysisFilterDto): Promise<AnomalyResponse> {
-    const qb = this.repo.createQueryBuilder('log');
+  async detectAnomalies(filters: AnalysisFilterDto): Promise<AnomalyResponse> {
+    if (!filters.fileId) {
+      throw new Error('fileId is required');
+    }
 
-    if (filters?.from) qb.andWhere('log.timestamp >= :from', { from: filters.from });
-    if (filters?.to) qb.andWhere('log.timestamp <= :to', { to: filters.to });
+    const from = this.normalizeDate(filters.from);
+    const to = this.normalizeDate(filters.to);
 
+    const qb = this.repo.createQueryBuilder('log')
+    .where('log.fileId = :fileId', { fileId: filters.fileId });
+    
+    if (from) qb.andWhere('log.timestamp >= :from', { from });
+    if (to) qb.andWhere('log.timestamp <= :to', { to });
+    
     const anomalies: Anomaly[] = [];
 
     const multipleDrop = await qb.clone()
       .select('log.sourceIp', 'ip')
       .addSelect('COUNT(*)', 'count')
-      .where("log.action = 'DROP'")
+      .andWhere("log.action = 'DROP'")
       .groupBy('log.sourceIp')
-      .having('COUNT(*) > 50')
+      .having('COUNT(*) > :threshold', {
+        threshold: ANOMALY_THRESHOLDS.MULTIPLE_DROP_COUNT,
+      })
       .getRawMany();
 
     multipleDrop.forEach(r =>
       anomalies.push({
-        type: 'MULTIPLE_DROP',
+        type: AnomalyType.MULTIPLE_DROP,
         level: AlertLevel.HIGH,
         ip: r.ip,
         count: Number(r.count),
@@ -134,14 +157,16 @@ export class AnalysisService {
     const bruteForce = await qb.clone()
       .select('log.sourceIp', 'ip')
       .addSelect('COUNT(DISTINCT log.destinationPort)', 'ports')
-      .where("log.action = 'DROP'")
+      .andWhere("log.action = 'DROP'")
       .groupBy('log.sourceIp')
-      .having('COUNT(DISTINCT log.destinationPort) > 20')
+      .having('COUNT(DISTINCT log.destinationPort) > :threshold', {
+        threshold: ANOMALY_THRESHOLDS.BRUTE_FORCE_PORTS,
+      })
       .getRawMany();
 
     bruteForce.forEach(r =>
       anomalies.push({
-        type: 'BRUTE_FORCE',
+        type: AnomalyType.BRUTE_FORCE,
         level: AlertLevel.HIGH,
         ip: r.ip,
         ports: Number(r.ports),

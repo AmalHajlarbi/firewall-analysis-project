@@ -24,6 +24,7 @@ export interface LogFilters {
   direction?: 'SEND' | 'RECEIVE' | 'INBOUND' | 'OUTBOUND' | '';
   from?: string;
   to?: string;
+  fileId?: string | '';
 }
 
 

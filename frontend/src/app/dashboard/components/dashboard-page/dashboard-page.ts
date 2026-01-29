@@ -2,31 +2,33 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { NgChartsModule } from 'ng2-charts';
 import { Dashboard } from '../../services/dashboard';
-import { PieChart } from '../pie-chart/pie-chart';
 import { BarChart } from '../bar-chart/bar-chart';
 import { ChartData, ChartOptions } from 'chart.js';
 import { Reports } from '../../../reports/services/reports';
 import { downloadBlob } from '../../../shared/utils/fcts.util';
-import { Filter } from '../../../filters/filter';
 import { signal,effect } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
+import { Store} from '../../../store/store';
+
 
 @Component({
   selector: 'app-dashboard-page',
   standalone: true,
-  imports: [CommonModule, NgChartsModule, PieChart, BarChart],
+  imports: [CommonModule, NgChartsModule, BarChart],
   templateUrl: './dashboard-page.html',
   styleUrls: ['./dashboard-page.css']
 })
 export class DashboardPage implements OnInit {
-
-  allowDenyData = signal<ChartData<'pie'>>({ labels: ['Allowed', 'Dropped'], datasets: [{ data: [0, 0] }] });
+  
+  
+  allowDenyData = signal<ChartData<'bar'>>({ labels: [], datasets: [{ data: [] }] });
   protocolData = signal<ChartData<'bar'>>({ labels: [], datasets: [{ data: [] }] });
   directionData = signal<ChartData<'bar'>>({ labels: [], datasets: [{ data: [] }] });
   firewallTypeData = signal<ChartData<'bar'>>({ labels: [], datasets: [{ data: [] }] });
   topSourceIpData = signal<ChartData<'bar'>>({ labels: [], datasets: [{ data: [] }] });
   topDestinationIpData = signal<ChartData<'bar'>>({ labels: [], datasets: [{ data: [] }] });
 
-  pieOptions: ChartOptions<'pie'> = { responsive: true, plugins: { legend: { position: 'top' } } };
+  //pieOptions: ChartOptions<'pie'> = { responsive: true, plugins: { legend: { position: 'top' } } };
   barOptions: ChartOptions<'bar'> = { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } };
 
   anomalies = signal<any[]>([]);
@@ -34,13 +36,14 @@ export class DashboardPage implements OnInit {
   constructor(
     private dashboardService: Dashboard,
     private reportsService: Reports,
-    private filterService: Filter
+    private store: Store,
+    private route: ActivatedRoute
   ) {}
 
   ngOnInit(): void {
-    const filters = this.filterService.filters();
-    this.loadStatistics(filters);
-    this.loadAnomalies(filters);
+    
+    this.loadStatistics(this.store.filters());
+    this.loadAnomalies(this.store.filters());
     
   }
 
@@ -66,7 +69,7 @@ export class DashboardPage implements OnInit {
   }
 
   downloadAnalysis(format: 'csv' | 'pdf') {
-    const filters = this.filterService.filters();
+    const filters = this.store.filters();
     this.reportsService.exportAnalysis(format, filters)
       .subscribe(blob => downloadBlob(blob, `logs.${format}`));
   }

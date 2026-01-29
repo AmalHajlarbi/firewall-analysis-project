@@ -1,6 +1,6 @@
 
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { FirewallType } from '../../upload/enums/FirewallType.enum';
 import { LogsSearchResponse ,FirewallLog, LogFilters } from '../interfaces/Firewall.interfaces';
 import { Observable, catchError, throwError } from 'rxjs';
@@ -14,33 +14,38 @@ export class Logs {
 
   constructor(private http: HttpClient) {}
 
-  
   searchLogs(
-    page: number,
-    limit: number,
-    filters: LogFilters
-  ): Observable<LogsSearchResponse> {
-    const params = this.buildSearchParams(page, limit, filters);
+  page: number,
+  limit: number,
+  filters: LogFilters
+): Observable<LogsSearchResponse> {
+  const params = this.buildSearchParams(page, limit, filters);
 
-    return this.http
-      .get<LogsSearchResponse>(`${this.apiUrl}/search`, { params })
-      .pipe(catchError(this.handleError));
-  }
-  private buildSearchParams(
-    page: number,
-    limit: number,
-    filters: LogFilters
-  ): any {
-    const params: any = { page, limit };
+  return this.http
+    .get<LogsSearchResponse>(`${this.apiUrl}/search`, { params })
+    .pipe(catchError(this.handleError));
+}
 
-    Object.entries(filters).forEach(([key, value]) => {
-      if (value !== '' && value !== null && value !== undefined) {
-        params[key] = value;
-      }
-    });
 
-    return params;
-  }
+  
+   private buildSearchParams(
+  page: number,
+  limit: number,
+  filters: LogFilters
+): HttpParams {
+  let params = new HttpParams()
+    .set('page', page)
+    .set('limit', limit);
+
+  Object.entries(filters).forEach(([key, value]) => {
+    if (value !== '' && value !== null && value !== undefined) {
+      params = params.set(key, value.toString());
+    }
+  });
+
+  return params;
+}
+
   private handleError(error: any) {
     console.error('[LogsService]', error);
     return throwError(() =>
@@ -53,4 +58,5 @@ export class Logs {
       responseType: 'blob'  
     });
   }
+  
 }
