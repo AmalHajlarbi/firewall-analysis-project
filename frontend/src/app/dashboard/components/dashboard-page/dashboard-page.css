@@ -1,0 +1,19 @@
+.card {
+  border-radius: 0.5rem;
+  background-color: #ffffff;
+}
+
+.card-title {
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+
+canvas {
+  width: 100% !important;
+  height: 250px !important;
+}
+
+.alert {
+  border-radius: 0.5rem;
+  font-size: 0.9rem;
+}

@@ -1,0 +1,65 @@
+<div class="container py-4">
+
+  <div class="card shadow-sm">
+    <div class="card-header bg-white">
+      <h4 class="mb-0">Firewall Logs</h4>
+    </div>
+
+    <div class="card-body">
+
+      <h5 class="mb-3">Import Firewall Logs</h5>
+
+      <div class="row g-3 align-items-end mb-4">
+        <div class="col-md-4">
+          <label class="form-label">Log File</label>
+          <input
+            type="file"
+            class="form-control"
+            (change)="onFileSelected($event)"
+          />
+        </div>
+
+        <div class="col-md-4">
+          <label class="form-label">Firewall Type</label>
+          <select class="form-select" [(ngModel)]="firewallType">
+            <option [ngValue]="null" disabled>-- Select --</option>
+            <option *ngFor="let type of supportedTypes" [ngValue]="type">{{ type }}</option>
+          </select>
+        </div>
+
+        <div class="col-md-2">
+          <button
+            type="button"
+            class="btn btn-success w-100"
+            (click)="uploadLogs()"
+            [disabled]="isUploading() || !selectedFile || !firewallType"
+          >
+            {{ isUploading() ? 'Uploading...' : 'Import' }}
+          </button>
+        </div>
+      </div>
+
+      <!-- Upload success -->
+      <div *ngIf="uploadResult()" class="alert alert-success">
+        <p class="mb-1"><strong>{{ uploadResult()?.message }}</strong></p>
+        <p class="mb-1">Lines Processed: {{ uploadResult()?.linesProcessed }}</p>
+        <p class="mb-0">Lines Ignored: {{ uploadResult()?.linesIgnored }}</p>
+        
+        <div *ngIf="uploadResult()?.warning" class="text-warning mt-2">
+          ⚠ {{ uploadResult()?.warning }}
+        </div>
+      </div>
+
+      <!-- Error -->
+      <div *ngIf="errorMessage()" class="alert alert-danger">
+        {{ errorMessage() }}
+      </div>
+
+      <hr />
+<div class="d-flex justify-content-end mt-3">
+  <button class="btn btn-outline-danger" (click)="onLogout()">
+    Logout
+  </button>
+</div>
+
+      
