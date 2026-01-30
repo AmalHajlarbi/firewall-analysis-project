@@ -8,19 +8,19 @@ import { Permission } from 'src/common/enums/role-permission.enum';
 import { Public } from 'src/auth/decorators/public.decorator';
 
 @Controller('analysis')
-//@UseGuards(JwtAuthGuard, PermissionsGuard)
-//@Permissions(Permission.ANALYZE_LOGS)
+@UseGuards(JwtAuthGuard, PermissionsGuard)
+@Permissions(Permission.ANALYZE_LOGS)
 export class AnalysisController {
   constructor(private readonly analysisService: AnalysisService) {}
 
   @Get('statistics')
-  @Public()
+  //@Public()
   async getStatistics(@Query() query: AnalysisFilterDto) {
     return this.analysisService.statistics(query);
   }
-  
+
   @Get('anomalies')
-  @Public()
+  //@Public()
   async getAnomalies(@Query() query: AnalysisFilterDto) {
     return this.analysisService.detectAnomalies(query);
   }

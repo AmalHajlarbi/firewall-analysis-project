@@ -1,4 +1,4 @@
-import { IsOptional, IsEnum, IsString, IsDateString } from 'class-validator';
+import { IsOptional, IsEnum, IsString, IsDateString, IsNotEmpty } from 'class-validator';
 import { FirewallType } from 'src/logs/enums/firewall-type.enum';
 
 export class AnalysisFilterDto {
@@ -22,7 +22,7 @@ export class AnalysisFilterDto {
   @IsString()
   direction?: string;
   
-  @IsOptional()
+  @IsNotEmpty()
   @IsString()
   fileId: string;  
 

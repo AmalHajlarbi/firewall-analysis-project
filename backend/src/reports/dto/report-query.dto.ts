@@ -1,5 +1,5 @@
 import { Type } from "class-transformer";
-import { IsDateString, IsEnum, IsInt, IsIP, IsOptional, IsString, Min } from "class-validator";
+import { IsDateString, IsEnum, IsInt, IsIP, IsNotEmpty, IsOptional, IsString, Min } from "class-validator";
 import { FirewallType } from "src/logs/enums/firewall-type.enum";
 
 
@@ -46,7 +46,7 @@ export class ReportQueryDto {
   @IsEnum(ReportFormat)
   format?: ReportFormat;
 
-  @IsOptional()  
+  @IsNotEmpty() 
   @IsString()
   fileId: string;
 }
