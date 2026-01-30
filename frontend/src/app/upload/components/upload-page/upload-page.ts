@@ -52,6 +52,7 @@ constructor(
           this.uploadResult.set(res);
           this.isUploading.set(false);
           console.log('Upload successful:', res);
+          this.store.resetFilters();
           this.store.setFilters({ fileId: res.fileId });
           localStorage.setItem('lastFileId', res.fileId);
           if(res.linesProcessed > 0) {
