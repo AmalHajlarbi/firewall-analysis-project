@@ -41,10 +41,10 @@ export class LogsController {
    * Upload d'un fichier log
    */
 
-  @Public()
+  
   @Post('upload')
-  //@UseGuards(JwtAuthGuard, PermissionsGuard)
-  //@Permissions(Permission.UPLOAD_LOGS)
+  @UseGuards(JwtAuthGuard, PermissionsGuard)
+  @Permissions(Permission.UPLOAD_LOGS)
   @UseInterceptors(
     FileInterceptor('file', {
       storage: diskStorage({
@@ -95,7 +95,7 @@ export class LogsController {
     throw new BadRequestException('firewallType est requis');
   }
 
-  // Validation manuelle du type
+  
     const firewallType = firewallTypeStr as FirewallType;
     if (!Object.values(FirewallType).includes(firewallType)) {
       throw new BadRequestException(
@@ -140,10 +140,10 @@ export class LogsController {
    * Types de firewalls supportés
    */
 
-@Public()
+
 @Get('supported-types')
-//@UseGuards(JwtAuthGuard, PermissionsGuard)
-//@Permissions(Permission.VIEW_LOGS)
+@UseGuards(JwtAuthGuard, PermissionsGuard)
+@Permissions(Permission.VIEW_LOGS)
 @ApiOperation({ summary: 'Lister les types de firewall supportés' })
   @ApiResponse({
     status: 200,

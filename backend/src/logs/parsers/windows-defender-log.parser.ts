@@ -23,10 +23,19 @@ export class WindowsDefenderLogParser implements FirewallLogParser {
       sourceIp,
       destinationIp,
       sourcePort,
-      destinationPort,
-      , , , , , , ,
-      direction,
+      destinationPort
     ] = parts;
+
+    const rawDirection = parts.find(p => p === 'SEND' || p === 'RECEIVE');
+
+    let direction: string | undefined;
+
+    if (rawDirection === 'SEND') {
+      direction = 'OUTBOUND';
+    } else if (rawDirection === 'RECEIVE') {
+      direction = 'INBOUND';
+    }
+
 
     const timestamp = new Date(`${date} ${time}`);
 
@@ -42,19 +51,14 @@ export class WindowsDefenderLogParser implements FirewallLogParser {
       destinationIp,
       firewallType: FirewallType.WINDOWS_DEFENDER,
       rawLog: line,
+      direction,
     };
 
-    if (sourcePort !== '-') {
-      parsedLog.sourcePort = Number(sourcePort);
-    }
+    const srcPort = Number(sourcePort);
+    if (!isNaN(srcPort)) parsedLog.sourcePort = srcPort;
 
-    if (destinationPort !== '-') {
-      parsedLog.destinationPort = Number(destinationPort);
-    }
-
-    if (direction && direction !== '-') {
-      parsedLog.direction = direction;
-    }
+    const dstPort = Number(destinationPort);
+    if (!isNaN(dstPort)) parsedLog.destinationPort = dstPort;
 
     return plainToInstance(ParsedLogDto, parsedLog);
   }
