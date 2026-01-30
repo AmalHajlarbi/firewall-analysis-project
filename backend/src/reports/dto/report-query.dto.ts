@@ -1,13 +1,7 @@
 import { Type } from "class-transformer";
 import { IsDateString, IsEnum, IsInt, IsIP, IsNotEmpty, IsOptional, IsString, Min } from "class-validator";
 import { FirewallType } from "src/logs/enums/firewall-type.enum";
-
-
-export enum ReportFormat {
-  CSV = 'csv',
-  PDF = 'pdf',
-}
-
+import { ReportFormat } from "../enums/report-format.enum";
 
 export class ReportQueryDto {
   @IsOptional()
