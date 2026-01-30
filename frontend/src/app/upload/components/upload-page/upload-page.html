@@ -45,10 +45,13 @@
         <p class="mb-1">Lines Processed: {{ uploadResult()?.linesProcessed }}</p>
         <p class="mb-0">Lines Ignored: {{ uploadResult()?.linesIgnored }}</p>
         
-        <div *ngIf="uploadResult()?.warning" class="text-warning mt-2">
-          ⚠ {{ uploadResult()?.warning }}
-        </div>
+        
       </div>
+      <div *ngIf="uploadResult()?.warning" class="alert alert-warning">
+  <strong>Warning</strong><br />
+  {{ uploadResult()?.warning }}
+</div>
+
 
       <!-- Error -->
       
