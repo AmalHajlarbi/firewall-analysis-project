@@ -28,8 +28,9 @@ export class UploadPage {
 constructor(
   private uploadService: Upload,
   private cdr: ChangeDetectorRef,
+  private auth: AuthService,
   private router: Router,
-  private store: Store
+  public store: Store
 ) {}
 
 
