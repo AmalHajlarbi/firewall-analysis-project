@@ -29,14 +29,7 @@ export class Upload {
     .pipe(catchError(this.handleError));;
   }
   
-  /*
-  private handleError(error: any) {
-    console.error('[LogsService]', error);
-    return throwError(() =>
-      new Error(error?.error?.message || 'Erreur serveur')
-    );
-  }
- */
+  
 private handleError(error: any) {
   console.error('[LogsService]', error);
 
