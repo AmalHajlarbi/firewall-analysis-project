@@ -54,13 +54,17 @@ constructor(
           console.log('Upload successful:', res);
           this.store.setFilters({ fileId: res.fileId });
           localStorage.setItem('lastFileId', res.fileId);
-          setTimeout(() => {
+          if(res.linesProcessed > 0) {
+            setTimeout(() => {
     this.router.navigate(['/logs'], {
       queryParams: {
         fileId: res.fileId   
       }
     });
   }, 1000);
+          }
+
+          
 },
         error: err => {
           this.errorMessage.set(err.message);
