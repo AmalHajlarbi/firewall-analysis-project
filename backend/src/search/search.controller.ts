@@ -9,13 +9,13 @@ import { Permissions } from 'src/auth/decorators/permissions.decorator';
 
 
 @Controller('logs/search')
-//@UseGuards(JwtAuthGuard, PermissionsGuard)
-//@Permissions(Permission.VIEW_LOGS)
+@UseGuards(JwtAuthGuard, PermissionsGuard)
+@Permissions(Permission.VIEW_LOGS)
 export class SearchController {
   constructor(private readonly searchService: SearchService) {}
   
   @Get()
-  @Public()
+  //@Public()
   async search(@Query() query: SearchLogsDto) {
     return this.searchService.search(query);
   }
