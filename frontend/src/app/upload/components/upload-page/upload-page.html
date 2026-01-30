@@ -51,9 +51,12 @@
       </div>
 
       <!-- Error -->
+      
       <div *ngIf="errorMessage()" class="alert alert-danger">
-        {{ errorMessage() }}
-      </div>
+  <strong>Upload failed</strong><br />
+  {{ errorMessage() }}
+</div>
+
 
       <hr />
 
