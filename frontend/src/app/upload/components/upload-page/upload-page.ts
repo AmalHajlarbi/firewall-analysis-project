@@ -7,7 +7,6 @@ import { UploadResponse } from '../../interfaces/upload.interfaces';
 import { Router } from '@angular/router';
 import { Store} from '../../../store/store';
 
-import { AuthService } from '../../../auth/services/auth';
 
 @Component({
   selector: 'app-upload-page',
@@ -24,14 +23,13 @@ export class UploadPage {
   isUploading = signal(false);
   uploadResult = signal<UploadResponse | undefined>(undefined)
   errorMessage = signal<string | undefined>(undefined);
-  store: any;
 
 /////////////////////////////
 constructor(
   private uploadService: Upload,
   private cdr: ChangeDetectorRef,
-  private auth: AuthService,
-  private router: Router
+  private router: Router,
+  public store: Store
 ) {}
 
 
@@ -54,15 +52,20 @@ constructor(
           this.uploadResult.set(res);
           this.isUploading.set(false);
           console.log('Upload successful:', res);
+          this.store.resetFilters();
           this.store.setFilters({ fileId: res.fileId });
           localStorage.setItem('lastFileId', res.fileId);
-          setTimeout(() => {
+          if(res.linesProcessed > 0) {
+            setTimeout(() => {
     this.router.navigate(['/logs'], {
       queryParams: {
         fileId: res.fileId   
       }
     });
   }, 1000);
+          }
+
+          
 },
         error: err => {
           this.errorMessage.set(err.message);
@@ -101,24 +104,7 @@ constructor(
     this.errorMessage.set(undefined);
   }
 
-  ///////////////////////////////////////
-onLogout() {
-  const confirmed = window.confirm('Are you sure you want to log out?');
+  
 
-  if (!confirmed) {
-    return;
-  }
-
-  this.auth.logout().subscribe({
-    next: () => {
-      this.router.navigate(['/login']);
-    },
-    error: () => {
-      // Even if backend fails, still log out locally
-      this.auth.clearTokens();
-      this.router.navigate(['/login']);
-    }
-  });
-}
 
 }

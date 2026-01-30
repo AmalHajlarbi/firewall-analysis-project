@@ -45,21 +45,23 @@
         <p class="mb-1">Lines Processed: {{ uploadResult()?.linesProcessed }}</p>
         <p class="mb-0">Lines Ignored: {{ uploadResult()?.linesIgnored }}</p>
         
-        <div *ngIf="uploadResult()?.warning" class="text-warning mt-2">
-          ⚠ {{ uploadResult()?.warning }}
-        </div>
+        
       </div>
+      <div *ngIf="uploadResult()?.warning" class="alert alert-warning">
+  <strong>Warning</strong><br />
+  {{ uploadResult()?.warning }}
+</div>
+
 
       <!-- Error -->
+      
       <div *ngIf="errorMessage()" class="alert alert-danger">
-        {{ errorMessage() }}
-      </div>
+  <strong>Upload failed</strong><br />
+  {{ errorMessage() }}
+</div>
+
 
       <hr />
-<div class="d-flex justify-content-end mt-3">
-  <button class="btn btn-outline-danger" (click)="onLogout()">
-    Logout
-  </button>
-</div>
+
 
       

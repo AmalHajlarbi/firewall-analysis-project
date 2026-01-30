@@ -8,7 +8,7 @@ import {
 import { FirewallType } from '../enums/firewall-type.enum';
 
 @Entity('firewall_logs')
-// les indexes sur les parties critiques pour accélérer les requetes
+
 @Index(['timestamp'])
 @Index(['action'])
 @Index(['sourceIp'])
@@ -33,7 +33,7 @@ export class FirewallLogEntity {
   @Column({ type: 'int', nullable: true })
   sourcePort?: number;
 
-  @Column({ type: 'varchar', length: 45 }) //compatible avec ipv6 = 45 char (ipv4 = 15 char)
+  @Column({ type: 'varchar', length: 45 })
   destinationIp: string;
 
   @Column({ type: 'int', nullable: true })

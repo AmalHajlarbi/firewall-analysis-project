@@ -31,7 +31,7 @@ export class LoginPageComponent {
     this.auth.login(this.email.trim(), this.password).subscribe({
       next: () => {
         this.loading = false;
-        this.router.navigate(['/dashboard']);
+        this.router.navigate(['/upload']);
         this.cdr.detectChanges();
       },
       error: (err) => {

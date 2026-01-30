@@ -75,11 +75,13 @@ export class LogsPage implements OnInit {
         },
         error: err => this.errorMessage.set(err.message),
       });
+      
   }
 
   search() {
     this.page.set(1);
     this.loadLogs();
+    
   }
 
   changePage(p: number) {
