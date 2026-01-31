@@ -1,17 +1,16 @@
 import { TestBed } from '@angular/core/testing';
 
-import { AuthService } from './auth';
+import { AdminUsers } from './admin-users';
 
-describe('AuthUser', () => {
-  let service: AuthService;
+describe('AdminUsers', () => {
+  let service: AdminUsers;
 
   beforeEach(() => {
     TestBed.configureTestingModule({});
-    service = TestBed.inject(AuthService);
+    service = TestBed.inject(AdminUsers);
   });
 
   it('should be created', () => {
     expect(service).toBeTruthy();
   });
 });
-  

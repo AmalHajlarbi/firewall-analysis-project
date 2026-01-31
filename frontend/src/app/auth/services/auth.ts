@@ -1,55 +1,62 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, tap } from 'rxjs';
+import { UserRole } from '../../admin/enums/user-role.enum';
+
+export interface AuthUser {
+  id: string;
+  email: string;
+  username: string;
+  role: UserRole;     
+  isActive: boolean;
+}
 
 export interface AuthResponse {
   access_token: string;
   refresh_token: string;
-  user: {
-    id: string;
-    email: string;
-    username: string;
-    role: string;
-    isActive: boolean;
-  };
+  user: AuthUser;
 }
 
-@Injectable({
-  providedIn: 'root',
-})
+@Injectable({ providedIn: 'root' })
 export class AuthService {
-  private baseUrl = 'http://localhost:3000/auth';
+  private authUrl = 'http://localhost:3000/auth';
+  private usersUrl = 'http://localhost:3000/users';
 
   constructor(private http: HttpClient) {}
 
   login(email: string, password: string): Observable<AuthResponse> {
     return this.http
-      .post<AuthResponse>(`${this.baseUrl}/login`, { email, password })
+      .post<AuthResponse>(`${this.authUrl}/login`, { email, password })
       .pipe(
         tap((res) => {
           this.saveTokens(res.access_token, res.refresh_token);
+          this.saveUser(res.user);
         })
       );
   }
 
   register(data: { email: string; username: string; password: string }): Observable<AuthResponse> {
     return this.http
-      .post<AuthResponse>(`${this.baseUrl}/register`, data)
+      .post<AuthResponse>(`${this.authUrl}/register`, data)
       .pipe(
         tap((res) => {
           this.saveTokens(res.access_token, res.refresh_token);
+          this.saveUser(res.user);
         })
       );
   }
 
-  profile(): Observable<any> {
-    return this.http.get(`${this.baseUrl}/profile`);
+  profile(): Observable<AuthUser> {
+    return this.http.get<AuthUser>(`${this.usersUrl}/profile`).pipe(
+      tap((user) => this.saveUser(user))
+    );
   }
 
   logout(): Observable<any> {
-    return this.http.post(`${this.baseUrl}/logout`, {}).pipe(
+    return this.http.post(`${this.authUrl}/logout`, {}).pipe(
       tap(() => {
         this.clearTokens();
+        this.clearUser();
       })
     );
   }
@@ -57,14 +64,21 @@ export class AuthService {
   refresh(): Observable<{ access_token: string; refresh_token: string }> {
     const refreshToken = this.getRefreshToken();
     return this.http
-      .post<{ access_token: string; refresh_token: string }>(`${this.baseUrl}/refresh`, {
-        refreshToken,
-      })
-      .pipe(
-        tap((res) => {
-          this.saveTokens(res.access_token, res.refresh_token);
-        })
-      );
+      .post<{ access_token: string; refresh_token: string }>(`${this.authUrl}/refresh`, { refreshToken })
+      .pipe(tap((res) => this.saveTokens(res.access_token, res.refresh_token)));
+  }
+
+  saveUser(user: AuthUser) {
+    localStorage.setItem('auth_user', JSON.stringify(user)); // ✅ consistent key
+  }
+
+  getCurrentUser(): AuthUser | null {
+    const raw = localStorage.getItem('auth_user');
+    return raw ? (JSON.parse(raw) as AuthUser) : null;
+  }
+
+  clearUser() {
+    localStorage.removeItem('auth_user');
   }
 
   saveTokens(accessToken: string, refreshToken: string) {
@@ -87,5 +101,9 @@ export class AuthService {
 
   isLoggedIn(): boolean {
     return !!this.getAccessToken();
+  }
+
+  isAdmin(): boolean {
+    return this.getCurrentUser()?.role === UserRole.ADMIN; 
   }
 }

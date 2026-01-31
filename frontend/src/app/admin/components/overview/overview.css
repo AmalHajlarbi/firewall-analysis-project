@@ -1,0 +1,5 @@
+.cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-top: 12px; }
+.card { border: 1px solid #e6e6e6; border-radius: 14px; padding: 14px; background: white; }
+.label { font-size: 12px; opacity: .7; }
+.value { font-size: 26px; font-weight: 800; margin-top: 6px; }
+.err { color: #c62828; }

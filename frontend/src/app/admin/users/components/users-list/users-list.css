@@ -1,0 +1,73 @@
+.good {
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: #ecfdf5;
+  color: #065f46;
+  font-size: 12px;
+}
+
+.bad {
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: #fef2f2;
+  color: #991b1b;
+  font-size: 12px;
+}
+
+.link {
+  cursor: pointer;
+  color: #2563eb;
+}
+
+.filters {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.filters input,
+.filters select {
+  padding: 6px 10px;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+}
+
+.filters button {
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  background: #fff;
+  cursor: pointer;
+}
+
+.actions .view-btn {
+  color: #1f2937;
+    border-radius: 8px;
+    border-color: #d1d5db;
+    border: 1px solid #e5e7eb;
+    background: #fff;
+}
+
+.actions .view-btn:hover {
+  background: #5d5c5c7d;
+  color: white;
+} 
+
+.actions .delete-btn {
+  color: #c22a2a;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: #fff;
+}
+
+.actions .delete-btn:hover {
+  background: #d53d3d;
+  color: white;
+}
+
+.actions {
+  display: flex;
+  gap: 8px; 
+}
+

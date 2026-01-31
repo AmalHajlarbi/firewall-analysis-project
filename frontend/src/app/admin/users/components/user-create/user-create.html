@@ -1,0 +1,34 @@
+<h2>Create User</h2>
+
+<p class="err" *ngIf="error">{{ error }}</p>
+
+<form class="card" [formGroup]="form" (ngSubmit)="submit()">
+  <label>Email</label>
+  <input type="email" formControlName="email" />
+  <small *ngIf="form.get('email')?.touched && form.get('email')?.invalid">
+    Valid email required
+  </small>
+
+  <label>Username</label>
+  <input type="text" formControlName="username" />
+  <small *ngIf="form.get('username')?.touched && form.get('username')?.invalid">
+    Username is required
+  </small>
+
+  <label>Password</label>
+  <input type="password" formControlName="password" />
+  <small *ngIf="form.get('password')?.touched && form.get('password')?.invalid">
+    Minimum 6 characters
+  </small>
+
+  <label>Role</label>
+  <select formControlName="role">
+    <option *ngFor="let r of roles" [value]="r">
+      {{ r }}
+    </option>
+  </select>
+
+  <button type="submit" [disabled]="loading">
+    {{ loading ? 'Creating...' : 'Create User' }}
+  </button>
+</form>

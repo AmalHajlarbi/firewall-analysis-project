@@ -1,0 +1,127 @@
+<h2>Users</h2>
+
+<p class="err" *ngIf="error">{{ error }}</p>
+
+<!-- Filters -->
+<div class="filters">
+  <input
+    type="text"
+    placeholder="Search email or username..."
+    [(ngModel)]="search"
+    (input)="onFilterChange()"
+  />
+
+  <select [(ngModel)]="roleFilter" (change)="onFilterChange()">
+    <option value="">All roles</option>
+    <option value="ADMIN">ADMIN</option>
+    <option value="ANALYST">ANALYST</option>
+  </select>
+
+  <select [(ngModel)]="activeFilter" (change)="onFilterChange()">
+    <option value="">All statuses</option>
+    <option value="true">Active</option>
+    <option value="false">Inactive</option>
+  </select>
+
+  <select [(ngModel)]="lockedFilter" (change)="onFilterChange()">
+    <option value="">All lock states</option>
+    <option value="true">Blocked</option>
+    <option value="false">Unblocked</option>
+  </select>
+
+  <select [(ngModel)]="deletedFilter" (change)="onFilterChange()">
+    <option value="">All (deleted + not deleted)</option>
+    <option value="false">Not deleted</option>
+    <option value="true">Deleted</option>
+  </select>
+
+  <button (click)="resetFilters()">Reset</button>
+</div>
+
+<div *ngIf="loading">Loading...</div>
+
+<table *ngIf="!loading" class="table">
+  <thead>
+    <tr>
+      <th>Email</th>
+      <th>Username</th>
+      <th>Role</th>
+      <th>Status</th>
+      <th>Blocked</th>
+      <th>Deleted</th>
+      <th>Failed Logins</th>
+      <th>Actions</th>
+    </tr>
+  </thead>
+
+  <tbody>
+    <tr *ngFor="let u of filteredUsers">
+      <td>{{ u.email }}</td>
+      <td>{{ u.username }}</td>
+      <td>{{ u.role }}</td>
+
+      <td>
+        <span [class.good]="u.isActive" [class.bad]="!u.isActive">
+          {{ statusText(u) }}
+        </span>
+      </td>
+
+      <td>
+        <span [class.bad]="isBlocked(u)" [class.good]="!isBlocked(u)">
+          {{ blockedText(u) }}
+        </span>
+      </td>
+
+      <td>
+        <span [class.bad]="isDeleted(u)" [class.good]="!isDeleted(u)">
+          {{ deletedText(u) }}
+        </span>
+      </td>
+
+      <td>{{ u.failedLoginAttempts }}</td>
+
+      <td class="actions">
+        <!-- Delete / Restore -->
+        <button class="delete-btn" (click)="softDelete(u)" *ngIf="!isDeleted(u)">
+          Delete
+        </button>
+
+        <button class="restore-btn" (click)="restore(u)" *ngIf="isDeleted(u)">
+          Restore
+        </button>
+
+        <!-- Block / Unblock -->
+        <button
+          class="block-btn"
+          (click)="block(u)"
+          *ngIf="!isDeleted(u) && !isBlocked(u)"
+        >
+          Block
+        </button>
+
+        <button
+          class="unblock-btn"
+          (click)="unblock(u)"
+          *ngIf="!isDeleted(u) && isBlocked(u)"
+        >
+          Unblock
+        </button>
+
+        <!-- Change Password -->
+        <button
+          class="password-btn"
+          (click)="changePassword(u)"
+          *ngIf="!isDeleted(u)"
+        >
+          Change Password
+        </button>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="pager" *ngIf="!loading">
+  <button (click)="prev()" [disabled]="page === 1">Prev</button>
+  <span>Page {{ page }} / {{ lastPage }}</span>
+  <button (click)="next()" [disabled]="page === lastPage">Next</button>
+</div>
