@@ -28,65 +28,70 @@ export class LogsService {
   /**
    * Traite une ligne brute de log
    */
-  async processLogLine(line: string, fileId: string): Promise<void> {
+async processLogLine(
+  line: string,
+  selectedType: FirewallType,
+  fileId: string
+): Promise<{ success: boolean; matchedType?: FirewallType }> {
 
-    if (!line.trim()) {
-    console.log('Ligne vide ignorée');
-    return;
-  }
-    const parser = this.parsers.find((p) => p.canParse(line));
-
-
-    if (!parser) {
-        console.log('Aucun parser compatible pour la ligne :', line.substring(0, 100) + '...');
-      return; 
-    }
-
-    const parsedDto = parser.parse(line);
-
-    if (!parsedDto) {
-        console.log('Parse échoué (null retourné) pour la ligne :', line.substring(0, 100));
-      return;
-    }
-
-    console.log('Parsed DTO:', parsedDto);
-
-    const errors = await validate(parsedDto);
-
-    if (errors.length > 0) {
-      return;
-    }
-
-    const entity = this.logRepository.create(
-        {...parsedDto,
-            timestamp: parsedDto.timestamp,
-            firewallType: parsedDto.firewallType,
-            fileId,
-
-        });
-    try{
-    await this.logRepository.save(entity);
-    console.log('Entity ready to save:', entity);
-    } catch (err) {
-        console.error('Error saving entity:', err);
-    }
-    
-    console.log(entity);
-    
+  if (!line.trim()) {
+    return { success: false };
   }
 
+  // Match parser by selected firewall type
+  const parser = this.parsers.find(
+    p => p.firewallType === selectedType && p.canParse(line)
+  );
 
+  if (!parser) {
+    return { success: false };
+  }
+
+  const parsedDto = parser.parse(line);
+
+  if (!parsedDto) {
+    return { success: false };
+  }
+
+  const errors = await validate(parsedDto);
+  if (errors.length > 0) {
+    return { success: false };
+  }
+
+  const entity = this.logRepository.create({
+    ...parsedDto,
+    firewallType: selectedType,
+    fileId,
+  });
+
+  await this.logRepository.save(entity);
+
+  return {
+    success: true,
+    matchedType: parser.firewallType,
+  };
+}
 
   /**
    * Traitement de plusieurs lignes 
    */
-async processMultipleLines(lines: string[], selectedType: FirewallType, fileId: string): Promise<{
+
+
+  async processMultipleLines(
+  lines: string[],
+  selectedType: FirewallType,
+  fileId: string
+): Promise<{
   processed: number;
   ignored: number;
   warning?: string;
 }> {
+
   let processed = 0;
   let ignored = 0;
+
+  const detectedTypeCounter = new Map<FirewallType, number>();
+  let totalMatchingLines = 0;
 
   for (const line of lines) {
     if (!line.trim()) {
@@ -94,30 +99,51 @@ async processMultipleLines(lines: string[], selectedType: FirewallType, fileId: 
       continue;
     }
 
-    const parser = this.parsers.find(p => p.canParse(line) && p.firewallType === selectedType);
+    // Try parsing with selected type
+    const parser = this.parsers.find(
+      p => p.firewallType === selectedType && p.canParse(line)
+    );
 
-    if (!parser) {
-      ignored++;
+    if (parser) {
+      await this.processLogLine(line, selectedType, fileId);
+      processed++;
       continue;
     }
 
-    await this.processLogLine(line, fileId); 
-    processed++;
+    // If selected parser failed, try detect other parsers
+    let matchedAny = false;
+
+    for (const otherParser of this.parsers) {
+      if (otherParser.canParse(line)) {
+        matchedAny = true;
+        totalMatchingLines++;
+
+        detectedTypeCounter.set(
+          otherParser.firewallType,
+          (detectedTypeCounter.get(otherParser.firewallType) || 0) + 1
+        );
+      }
+    }
+
+    ignored++;
   }
 
-   const result: {
-    processed: number;
-    ignored: number;
-    warning?: string;
-  } = {
-    processed,
-    ignored,
-  };
-  if (processed === 0 && lines.length > ignored) {
-    result.warning = `Aucune ligne valide trouvée pour le type ${selectedType}`;
+  let warning: string | undefined;
+
+  if (processed === 0 && totalMatchingLines === 0) {
+    warning = `Firewall type not supported or file format unknown`;
   }
 
-  return result;
+  else if (processed === 0 && detectedTypeCounter.size > 0) {
+    const [bestMatch] = [...detectedTypeCounter.entries()]
+      .sort((a, b) => b[1] - a[1])[0];
+
+    if (bestMatch !== selectedType) {
+      warning = `Selected firewall type (${selectedType}) seems incorrect. Detected: ${bestMatch}`;
+    }
+  }
+
+  return { processed, ignored, warning };
 }
 
 

@@ -15,14 +15,14 @@ export class FortiGateLogParser implements FirewallLogParser {
 
   parse(line: string): ParsedLogDto | null {
     try {
-      // On extrait les paires clé=valeur
+    
       const fields: Record<string, string> = {};
       const pairs = line.match(/(\w+)=("[^"]*"|[^ ]*)/g) || [];
 
       for (const pair of pairs) {
         const [key, value] = pair.split('=', 2);
         if (key && value) {
-          // Enlever les guillemets si présents
+    
           fields[key] = value.replace(/^"|"$/g, '');
         }
       }
@@ -40,7 +40,14 @@ export class FortiGateLogParser implements FirewallLogParser {
       }
 
       // Champs principaux
-      const action = fields.action || 'unknown';
+      let rawAction = fields.action.toLowerCase(); 
+      let action: string;
+
+      if (rawAction === 'accept') action = 'ALLOW';
+      else if (rawAction === 'blocked' || rawAction === 'deny' || rawAction === 'denied') action = 'DROP';
+      else action = rawAction.toUpperCase();
+
+
       const protocol = fields.proto || fields.service || 'unknown';
 
       // IP source / destination
@@ -48,11 +55,23 @@ export class FortiGateLogParser implements FirewallLogParser {
       const destinationIp = fields.dstip || fields.dst || '0.0.0.0';
 
       // Ports 
-      let sourcePort: number | undefined = undefined;
-      let destinationPort: number | undefined = undefined;
+      let sourcePort: number | undefined;
+      let destinationPort: number | undefined;
 
-      if (fields.srcport) sourcePort = parseInt(fields.srcport, 10);
-      if (fields.dstport) destinationPort = parseInt(fields.dstport, 10);
+      const srcPortRaw = fields.srcport || fields.sport || fields.src_port;
+      const dstPortRaw = fields.dstport || fields.dport || fields.dst_port;
+
+      if (srcPortRaw && !isNaN(Number(srcPortRaw))) {
+        sourcePort = parseInt(srcPortRaw, 10);
+      } else {
+        sourcePort = undefined; 
+      }
+
+      if (dstPortRaw && !isNaN(Number(dstPortRaw))) {
+        destinationPort = parseInt(dstPortRaw, 10);
+      } else {
+        destinationPort = undefined; 
+      }
 
       // Direction 
       let direction: string | undefined;
@@ -77,7 +96,7 @@ export class FortiGateLogParser implements FirewallLogParser {
         rawLog: line.trim(),
       };
 
-      // Nettoyage des champs optionnels non valides
+      
       if (isNaN(parsedLog.sourcePort!)) delete parsedLog.sourcePort;
       if (isNaN(parsedLog.destinationPort!)) delete parsedLog.destinationPort;
 

@@ -58,7 +58,7 @@ export class UsersController {
   // --------------------------------------------------------------------------------
 
   @Get('profile')
-  @ApiOperation({ summary: 'Get current user profile (requires VIEW_USERS permission)' })
+  @ApiOperation({ summary: 'Get current user profile ' })
   async getProfile(@CurrentUser() user: any) {
     return this.usersService.findOne(user.id);
   }

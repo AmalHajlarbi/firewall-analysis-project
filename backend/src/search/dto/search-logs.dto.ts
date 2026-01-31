@@ -70,6 +70,7 @@ export class SearchLogsDto {
     @Min(1)
     limit?: number;
 
+    @IsNotEmpty()
     @IsString()
     fileId: string;
 }
