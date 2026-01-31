@@ -44,6 +44,8 @@ export class OverviewComponent implements OnInit {
     // We fetch a large page to compute stats client-side
     this.usersService.getUsers(1, 1000).subscribe({
       next: (res) => {
+        console.log('received', res);
+        this.loading = false;
         const users = res.users as AdminUser[];
 
         this.totalUsers = res.total;

@@ -106,4 +106,13 @@ export class AuthService {
   isAdmin(): boolean {
     return this.getCurrentUser()?.role === UserRole.ADMIN; 
   }
+
+changeOwnPassword(currentPassword: string, newPassword: string) {
+  return this.http.post(`${this.authUrl}/change-password`, {
+    currentPassword,
+    newPassword,
+  });
+}
+
+
 }

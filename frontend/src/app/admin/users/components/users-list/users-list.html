@@ -6,7 +6,7 @@
 <div class="filters">
   <input
     type="text"
-    placeholder="Search email or username..."
+    placeholder="Search email or username"
     [(ngModel)]="search"
     (input)="onFilterChange()"
   />
@@ -122,6 +122,6 @@
 
 <div class="pager" *ngIf="!loading">
   <button (click)="prev()" [disabled]="page === 1">Prev</button>
-  <span>Page {{ page }} / {{ lastPage }}</span>
+  <span>    Page {{ page }} / {{ lastPage }}    </span>
   <button (click)="next()" [disabled]="page === lastPage">Next</button>
 </div>

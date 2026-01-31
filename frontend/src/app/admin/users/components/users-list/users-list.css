@@ -1,24 +1,3 @@
-.good {
-  padding: 4px 8px;
-  border-radius: 999px;
-  background: #ecfdf5;
-  color: #065f46;
-  font-size: 12px;
-}
-
-.bad {
-  padding: 4px 8px;
-  border-radius: 999px;
-  background: #fef2f2;
-  color: #991b1b;
-  font-size: 12px;
-}
-
-.link {
-  cursor: pointer;
-  color: #2563eb;
-}
-
 .filters {
   display: flex;
   gap: 8px;
@@ -41,33 +20,95 @@
   cursor: pointer;
 }
 
-.actions .view-btn {
-  color: #1f2937;
-    border-radius: 8px;
-    border-color: #d1d5db;
-    border: 1px solid #e5e7eb;
-    background: #fff;
+.good {
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: #ecfdf5;
+  color: #065f46;
+  font-size: 12px;
 }
 
-.actions .view-btn:hover {
-  background: #5d5c5c7d;
-  color: white;
-} 
+.bad {
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: #fef2f2;
+  color: #991b1b;
+  font-size: 12px;
+}
 
-.actions .delete-btn {
-  color: #c22a2a;
-  border: 1px solid #e5e7eb;
+/* actions layout */
+.actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.actions button {
+  white-space: nowrap;
+  padding: 6px 12px;
   border-radius: 8px;
+  border: 1px solid #e5e7eb;
   background: #fff;
+  cursor: pointer;
+  font-size: 12px;
+  transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.actions button:hover {
+  background-color: rgba(31, 41, 55, 0.08); /* subtle dark tint */
+  color: #111827;
+}
+
+/* Delete */
+.actions .delete-btn {
+  color: #991b1b;
 }
 
 .actions .delete-btn:hover {
-  background: #d53d3d;
-  color: white;
+  background-color: rgba(220, 38, 38, 0.12);
+  border-color: rgba(220, 38, 38, 0.35);
+  color: #991b1b;
 }
 
-.actions {
-  display: flex;
-  gap: 8px; 
+/* Restore */
+.actions .restore-btn {
+  color: #065f46;
+}
+
+.actions .restore-btn:hover {
+  background-color: rgba(16, 185, 129, 0.12);
+  border-color: rgba(16, 185, 129, 0.35);
+  color: #065f46;
+}
+
+/* Block */
+.actions .block-btn {
+  color: #b45309; 
+}
+
+.actions .block-btn:hover {
+  background-color: rgba(245, 158, 11, 0.12);
+  border-color: rgba(245, 158, 11, 0.35);
+  color: #b45309;
+}
+
+/* Unblock */
+.actions .unblock-btn {
+  color: #1d4ed8; /* blue */
+}
+
+.actions .unblock-btn:hover {
+  background-color: rgba(59, 130, 246, 0.12);
+  border-color: rgba(59, 130, 246, 0.35);
+  color: #1d4ed8;
+}
+
+/* Change password */
+.actions .password-btn {
+  color: #000000;
+}
+
+.actions .password-btn:hover {
+  background-color: rgba(111, 108, 108, 0.654);
 }
 

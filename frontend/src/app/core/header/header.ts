@@ -12,6 +12,26 @@ import { AuthService } from '../../auth/services/auth';
 export class Header {
   constructor(private auth: AuthService, private router: Router) {}
 
+    changePassword() {
+    const currentPassword = prompt('Current password:');
+    if (!currentPassword) return;
+
+    const newPassword = prompt('New password (min 6 chars):');
+    if (!newPassword || newPassword.length < 6) {
+      alert('Password must be at least 6 characters.');
+      return;
+    }
+
+    this.auth.changeOwnPassword(currentPassword, newPassword).subscribe({
+      next: () => {
+        alert('Password changed successfully.');
+      },
+      error: (err) => {
+        alert(err?.error?.message || 'Failed to change password');
+      },
+    });
+  }
+  
   logout() {
   const confirmed = window.confirm('Are you sure you want to log out?');
 
