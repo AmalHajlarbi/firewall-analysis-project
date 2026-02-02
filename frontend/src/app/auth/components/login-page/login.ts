@@ -27,7 +27,7 @@ export class LoginPageComponent {
     this.error = '';
     this.loading = true;
 
-    this.auth.login(this.email.trim(), this.password).subscribe({
+    this.auth.login({ email: this.email.trim(), password: this.password }).subscribe({
       next: (res: AuthResponse) => {
         console.log('LOGIN OK. ROLE =', res.user.role);
         this.loading = false;

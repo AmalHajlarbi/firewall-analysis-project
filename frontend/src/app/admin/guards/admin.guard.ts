@@ -19,13 +19,11 @@ private check(): boolean {
   console.log('[AdminGuard] raw auth_user =', raw);
 
   if (!raw) {
-    console.log('[AdminGuard] no auth_user -> login');
     this.router.navigate(['/login']);
     return false;
   }
 
   const user = JSON.parse(raw);
-  console.log('[AdminGuard] parsed user =', user);
 
   if (user.role === 'admin') {
     console.log('[AdminGuard] ADMIN OK');

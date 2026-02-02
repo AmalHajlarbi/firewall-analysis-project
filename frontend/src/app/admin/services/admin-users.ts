@@ -1,14 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
-
-import {
-  AdminUser,
-  CreateUserDto,
-  UpdateUserDto,
-  UsersPageResponse,
-} from '../interfaces/admin.interfaces';
-import { UserRole } from '../enums/user-role.enum';
+import { AdminUser, CreateUserDto, UsersPageResponse } from '../interfaces/admin.interfaces';
 
 @Injectable({ providedIn: 'root' })
 export class AdminUsersService {
@@ -32,17 +25,6 @@ export class AdminUsersService {
     return this.http.post<AdminUser>(this.API, dto);
   }
 
-  updateUser(id: string, dto: UpdateUserDto): Observable<AdminUser> {
-    return this.http.patch<AdminUser>(`${this.API}/${id}`, dto);
-  }
-
-  updateRole(id: string, role: UserRole): Observable<{ user: AdminUser }> {
-    return this.http.patch<{ user: AdminUser }>(
-      `${this.API}/${id}/role`,
-      { role }
-    );
-  }
-
   deleteUser(id: string): Observable<void> {
     return this.http.delete<void>(`${this.API}/${id}`);
   }
@@ -63,6 +45,16 @@ export class AdminUsersService {
     return this.http.post<void>(`${this.API}/${id}/unlock`, {});
   }
 
+    changeOwnPassword(
+    currentPassword: string,
+    newPassword: string
+  ): Observable<void> {
+    return this.http.post<void>(`${this.API}/change-password`, {
+      currentPassword,
+      newPassword,
+    });
+  }
+  
   changeUserPassword(id: string, newPassword: string): Observable<void> {
     return this.http.post<void>(`${this.API}/${id}/change-password`, {
       newPassword,
