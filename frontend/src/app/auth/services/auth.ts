@@ -3,6 +3,21 @@ import { HttpClient } from '@angular/common/http';
 import { Observable, tap } from 'rxjs';
 import { UserRole } from '../../admin/enums/user-role.enum';
 
+export interface LoginRequest {
+  email: string;
+  password: string;
+}
+
+export interface RegisterRequest {
+  email: string;
+  username: string;
+  password: string;
+}
+
+export interface RefreshRequest {
+  refreshToken: string;
+}
+
 export interface AuthUser {
   id: string;
   email: string;
@@ -20,37 +35,26 @@ export interface AuthResponse {
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private authUrl = 'http://localhost:3000/auth';
-  private usersUrl = 'http://localhost:3000/users';
 
   constructor(private http: HttpClient) {}
 
-  login(email: string, password: string): Observable<AuthResponse> {
-    return this.http
-      .post<AuthResponse>(`${this.authUrl}/login`, { email, password })
-      .pipe(
-        tap((res) => {
-          this.saveTokens(res.access_token, res.refresh_token);
-          this.saveUser(res.user);
-        })
-      );
-  }
+login(data: LoginRequest): Observable<AuthResponse> {
+  return this.http.post<AuthResponse>(`${this.authUrl}/login`, data).pipe(
+    tap((res) => {
+      this.saveTokens(res.access_token, res.refresh_token);
+      this.saveUser(res.user);
+    })
+  );
+}
 
-  register(data: { email: string; username: string; password: string }): Observable<AuthResponse> {
-    return this.http
-      .post<AuthResponse>(`${this.authUrl}/register`, data)
-      .pipe(
-        tap((res) => {
-          this.saveTokens(res.access_token, res.refresh_token);
-          this.saveUser(res.user);
-        })
-      );
-  }
-
-  profile(): Observable<AuthUser> {
-    return this.http.get<AuthUser>(`${this.usersUrl}/profile`).pipe(
-      tap((user) => this.saveUser(user))
-    );
-  }
+register(data: RegisterRequest): Observable<AuthResponse> {
+  return this.http.post<AuthResponse>(`${this.authUrl}/register`, data).pipe(
+    tap((res) => {
+      this.saveTokens(res.access_token, res.refresh_token);
+      this.saveUser(res.user);
+    })
+  );
+}
 
   logout(): Observable<any> {
     return this.http.post(`${this.authUrl}/logout`, {}).pipe(
@@ -69,7 +73,7 @@ export class AuthService {
   }
 
   saveUser(user: AuthUser) {
-    localStorage.setItem('auth_user', JSON.stringify(user)); // ✅ consistent key
+    localStorage.setItem('auth_user', JSON.stringify(user)); 
   }
 
   getCurrentUser(): AuthUser | null {
@@ -108,11 +112,9 @@ export class AuthService {
   }
 
 changeOwnPassword(currentPassword: string, newPassword: string) {
-  return this.http.post(`${this.authUrl}/change-password`, {
+  return this.http.post(`http://localhost:3000/users/change-password`, {
     currentPassword,
     newPassword,
   });
 }
-
-
 }

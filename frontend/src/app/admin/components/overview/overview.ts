@@ -16,18 +16,11 @@ export class OverviewComponent implements OnInit {
   loading = true;
   error = '';
 
-  // totals
   totalUsers = 0;
-
-  // roles
   admins = 0;
   analysts = 0;
-
-  // status
   activeUsers = 0;
   inactiveUsers = 0;
-
-  // lock state
   blockedUsers = 0;
   unblockedUsers = 0;
 
@@ -41,7 +34,6 @@ export class OverviewComponent implements OnInit {
     this.loading = true;
     this.error = '';
 
-    // We fetch a large page to compute stats client-side
     this.usersService.getUsers(1, 1000).subscribe({
       next: (res) => {
         console.log('received', res);
@@ -72,7 +64,6 @@ export class OverviewComponent implements OnInit {
     });
   }
 
-  // same logic as users list
   isBlocked(u: AdminUser): boolean {
     if (!u.lockedUntil) return false;
     return new Date(u.lockedUntil).getTime() > Date.now();

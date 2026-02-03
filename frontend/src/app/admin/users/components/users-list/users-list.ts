@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 
 import { AdminUsersService } from '../../../services/admin-users';
 import { AdminUser } from '../../../interfaces/admin.interfaces';
+import { UserRole } from '../../../enums/user-role.enum';
 
 @Component({
   selector: 'app-users-list',
@@ -24,9 +25,8 @@ export class UsersListComponent implements OnInit {
   total = 0;
   lastPage = 1;
 
-  // filters
+  roleFilter: UserRole | '' = '';
   search = '';
-  roleFilter = '';     
   activeFilter = '';   
   lockedFilter = '';   
   deletedFilter = '';  
@@ -58,7 +58,6 @@ export class UsersListComponent implements OnInit {
     });
   }
 
-  // ---------------- helpers ----------------
   isDeleted(u: AdminUser): boolean {
     return !!u.deletedAt;
   }
@@ -68,7 +67,6 @@ export class UsersListComponent implements OnInit {
     return new Date(u.lockedUntil).getTime() > Date.now();
   }
 
-  // display helpers 
   statusText(u: AdminUser): string {
     return u.isActive ? 'Active' : 'Inactive';
   }
@@ -81,7 +79,6 @@ export class UsersListComponent implements OnInit {
     return this.isDeleted(u) ? 'Deleted' : 'No';
   }
 
-  // ---------------- filters ----------------
   onFilterChange(): void {
     this.applyFilters();
   }
@@ -105,7 +102,7 @@ export class UsersListComponent implements OnInit {
         u.username?.toLowerCase().includes(s);
 
       const matchesRole =
-        !this.roleFilter || u.role === this.roleFilter;
+      !this.roleFilter || u.role === this.roleFilter
 
       const matchesActive =
         this.activeFilter === ''
@@ -132,8 +129,8 @@ export class UsersListComponent implements OnInit {
     });
   }
 
-  // ---------------- actions ----------------
-softDelete(u: AdminUser): void {
+
+  softDelete(u: AdminUser): void {
   if (!confirm(`Soft delete ${u.email}?`)) return;
 
   this.usersService.deleteUser(u.id).subscribe({
@@ -160,7 +157,6 @@ restore(u: AdminUser): void {
     error: (err) => (this.error = err?.error?.message || 'Restore failed'),
   });
 }
-
 
   block(u: AdminUser): void {
     if (this.isDeleted(u)) return;
@@ -189,8 +185,8 @@ restore(u: AdminUser): void {
     if (this.isDeleted(u)) return;
 
     const newPassword = prompt(`New password for ${u.email}:`);
-    if (!newPassword || newPassword.trim().length < 6) {
-      this.error = 'Password must be at least 6 characters.';
+    if (!newPassword || newPassword.trim().length < 8) {
+      this.error = 'Password must be at least 8 characters.';
       return;
     }
 
@@ -204,7 +200,6 @@ restore(u: AdminUser): void {
     });
   }
 
-  // pagination
   prev(): void {
     if (this.page > 1) this.load(this.page - 1);
   }

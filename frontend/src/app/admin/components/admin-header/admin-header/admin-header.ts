@@ -1,15 +1,22 @@
 import { Component } from '@angular/core';
-import { Router, RouterModule } from '@angular/router';
-import { AuthService } from '../../auth/services/auth';
+import { CommonModule } from '@angular/common';
+import { Router } from '@angular/router';
+import { AdminUsersService } from '../../../services/admin-users';
+import { AuthService } from '../../../../auth/services/auth'; // adjust path if needed
 
 @Component({
-  selector: 'app-header',
-  imports: [RouterModule],
-  templateUrl: './header.html',
-  styleUrl: './header.css',
+  selector: 'admin-header',
+  standalone: true,
+  imports: [CommonModule],
+  templateUrl: './admin-header.html',
+  styleUrls: ['./admin-header.css'],
 })
-export class Header {
-  constructor(private auth: AuthService, private router: Router) {}
+export class AdminHeaderComponent {
+  constructor(
+    private usersService: AdminUsersService,
+    private auth: AuthService,
+    private router: Router
+  ) {}
 
   changePassword() {
     const currentPassword = prompt('Current password:');
@@ -41,13 +48,10 @@ export class Header {
       return;
     }
 
-    this.auth.changeOwnPassword(currentPassword, newPassword).subscribe({
-      next: () => {
-        alert('Password changed successfully.');
-      },
-      error: (err) => {
-        alert(err?.error?.message || 'Failed to change password');
-      },
+    this.usersService.changeOwnPassword(currentPassword, newPassword).subscribe({
+      next: () => alert('Password changed successfully.'),
+      error: (err) =>
+        alert(err?.error?.message || 'Failed to change password'),
     });
   }
 

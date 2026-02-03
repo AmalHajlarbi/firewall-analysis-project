@@ -2,7 +2,6 @@
 
 <p class="err" *ngIf="error">{{ error }}</p>
 
-<!-- Filters -->
 <div class="filters">
   <input
     type="text"
@@ -11,11 +10,11 @@
     (input)="onFilterChange()"
   />
 
-  <select [(ngModel)]="roleFilter" (change)="onFilterChange()">
-    <option value="">All roles</option>
-    <option value="ADMIN">ADMIN</option>
-    <option value="ANALYST">ANALYST</option>
-  </select>
+<select [(ngModel)]="roleFilter" (change)="onFilterChange()">
+  <option value="">All roles</option>
+  <option value="admin">ADMIN</option>
+  <option value="analyst">ANALYST</option>
+</select>
 
   <select [(ngModel)]="activeFilter" (change)="onFilterChange()">
     <option value="">All statuses</option>
@@ -81,7 +80,6 @@
       <td>{{ u.failedLoginAttempts }}</td>
 
       <td class="actions">
-        <!-- Delete / Restore -->
         <button class="delete-btn" (click)="softDelete(u)" *ngIf="!isDeleted(u)">
           Delete
         </button>
@@ -90,7 +88,6 @@
           Restore
         </button>
 
-        <!-- Block / Unblock -->
         <button
           class="block-btn"
           (click)="block(u)"
@@ -107,7 +104,6 @@
           Unblock
         </button>
 
-        <!-- Change Password -->
         <button
           class="password-btn"
           (click)="changePassword(u)"

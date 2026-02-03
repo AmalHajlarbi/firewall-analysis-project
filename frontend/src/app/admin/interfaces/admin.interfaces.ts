@@ -19,14 +19,8 @@ export interface CreateUserDto {
   username: string;
   password: string;
 
-  role?: UserRole;      // backend default = analyst
-  isActive?: boolean;   // backend default = true
-}
-
-export interface UpdateUserDto {
-  email?: string;
-  username?: string;
-  isActive?: boolean;
+  role?: UserRole;      
+  isActive?: boolean;  
 }
 
 export interface UsersPageResponse {
@@ -35,3 +29,5 @@ export interface UsersPageResponse {
   page: number;
   lastPage: number;
 }
+
+

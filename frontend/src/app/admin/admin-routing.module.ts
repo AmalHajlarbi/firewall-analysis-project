@@ -6,7 +6,6 @@ import { LayoutComponent } from './components/layout/layout';
 import { OverviewComponent } from './components/overview/overview';
 import { UsersListComponent } from './users/components/users-list/users-list';
 import { UserCreateComponent } from './users/components/user-create/user-create';
-import { UserDetailsComponent } from './users/components/user-details/user-details';
 
 const routes: Routes = [
   {
@@ -20,7 +19,6 @@ const routes: Routes = [
       { path: 'overview', component: OverviewComponent },
       { path: 'users', component: UsersListComponent },
       { path: 'users/create', component: UserCreateComponent },
-      { path: 'users/:id', component: UserDetailsComponent },
       { path: '**', redirectTo: 'overview' },
     ],
   },
