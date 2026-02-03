@@ -10,6 +10,8 @@
       <h5 class="mb-3">Import Firewall Logs</h5>
 
       <div class="row g-3 align-items-end mb-4">
+
+        <!-- Log File Input -->
         <div class="col-md-4">
           <label class="form-label">Log File</label>
           <input
@@ -19,14 +21,19 @@
           />
         </div>
 
+        <!-- Firewall Type Select -->
         <div class="col-md-4">
           <label class="form-label">Firewall Type</label>
           <select class="form-select" [(ngModel)]="firewallType">
             <option [ngValue]="null" disabled>-- Select --</option>
-            <option *ngFor="let type of supportedTypes" [ngValue]="type">{{ type }}</option>
+
+            @for (type of supportedTypes; track type) {
+              <option [ngValue]="type">{{ type }}</option>
+            }
           </select>
         </div>
 
+        <!-- Upload Button -->
         <div class="col-md-2">
           <button
             type="button"
@@ -37,31 +44,35 @@
             {{ isUploading() ? 'Uploading...' : 'Import' }}
           </button>
         </div>
+
       </div>
 
-      <!-- Upload success -->
-      <div *ngIf="uploadResult()" class="alert alert-success">
-        <p class="mb-1"><strong>{{ uploadResult()?.message }}</strong></p>
-        <p class="mb-1">Lines Processed: {{ uploadResult()?.linesProcessed }}</p>
-        <p class="mb-0">Lines Ignored: {{ uploadResult()?.linesIgnored }}</p>
-        
-        
-      </div>
-      <div *ngIf="uploadResult()?.warning" class="alert alert-warning">
-  <strong>Warning</strong><br />
-  {{ uploadResult()?.warning }}
-</div>
+      <!-- Upload Success -->
+      @if (uploadResult()) {
+        <div class="alert alert-success">
+          <p class="mb-1"><strong>{{ uploadResult()?.message }}</strong></p>
+          <p class="mb-1">Lines Processed: {{ uploadResult()?.linesProcessed }}</p>
+          <p class="mb-0">Lines Ignored: {{ uploadResult()?.linesIgnored }}</p>
+        </div>
+      }
 
+      @if (uploadResult()?.warning) {
+        <div class="alert alert-warning">
+          <strong>Warning</strong><br />
+          {{ uploadResult()?.warning }}
+        </div>
+      }
 
-      <!-- Error -->
-      
-      <div *ngIf="errorMessage()" class="alert alert-danger">
-  <strong>Upload failed</strong><br />
-  {{ errorMessage() }}
-</div>
-
+      <!-- Upload Error -->
+      @if (errorMessage()) {
+        <div class="alert alert-danger">
+          <strong>Upload failed</strong><br />
+          {{ errorMessage() }}
+        </div>
+      }
 
       <hr />
 
-
-      
+    </div>
+  </div>
+</div>
