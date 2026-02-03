@@ -7,7 +7,7 @@ import { OverviewComponent } from './components/overview/overview';
 import { UsersListComponent } from './users/components/users-list/users-list';
 import { UserCreateComponent } from './users/components/user-create/user-create';
 
-const routes: Routes = [
+export const ADMIN_ROUTES: Routes = [
   {
     path: '',
     component: LayoutComponent,
@@ -23,9 +23,3 @@ const routes: Routes = [
     ],
   },
 ];
-
-@NgModule({
-  imports: [RouterModule.forChild(routes)],
-  exports: [RouterModule],
-})
-export class AdminRoutingModule {}

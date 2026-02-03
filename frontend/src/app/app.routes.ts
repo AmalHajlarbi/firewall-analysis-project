@@ -14,7 +14,10 @@ export const routes: Routes = [
   { path: 'dashboard', component: DashboardPage, canActivate: [AuthGuard] },
   { path: 'login', component: LoginPageComponent },
   { path: 'register', component: RegisterPageComponent },
-  { path: 'admin', loadChildren: () => import('./admin/admin.module').then(m => m.AdminModule) },
+{ 
+  path: 'admin',
+  loadChildren: () => import('./admin/admin-routing.module').then(r => r.ADMIN_ROUTES)
+},
   { path: '**', redirectTo: 'login' },
 
 ];
