@@ -15,7 +15,6 @@ export class SearchController {
   constructor(private readonly searchService: SearchService) {}
   
   @Get()
-  //@Public()
   async search(@Query() query: SearchLogsDto) {
     return this.searchService.search(query);
   }

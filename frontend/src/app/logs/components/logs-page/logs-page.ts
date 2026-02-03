@@ -27,6 +27,14 @@ export class LogsPage implements OnInit {
   total = signal(0);
   supportedTypes: FirewallType[] = [];
   errorMessage = signal<string | undefined>(undefined);
+  formFilters: LogFilters = {
+    action: '',
+    firewallType: '',
+    protocol: '',
+    sourceIp: '',
+    direction: '',
+  };
+
   constructor(private logService: Logs, private reportsService: Reports, private cdr: ChangeDetectorRef,public store: Store, private route: ActivatedRoute) {}
 
   ngOnInit() {
@@ -75,12 +83,30 @@ export class LogsPage implements OnInit {
         },
         error: err => this.errorMessage.set(err.message),
       });
+      
   }
-
+  /*
   search() {
     this.page.set(1);
     this.loadLogs();
+    
   }
+  */
+ search() {
+  this.page.set(1);
+
+  this.store.setFilters({ ...this.formFilters });
+
+  this.loadLogs();
+
+  this.formFilters= {
+    action: '',
+    firewallType: '',
+    protocol: '',
+    sourceIp: '',
+    direction: '',
+  };
+}
 
   changePage(p: number) {
     if (p < 1 || p > this.totalPages()) return;
@@ -92,16 +118,15 @@ export class LogsPage implements OnInit {
       .subscribe(blob => downloadBlob(blob, `logs.${format}`));
   }
   isFromGreaterThanTo(): boolean {
-  const from = this.store.filters().from;
-  const to = this.store.filters().to;
+  const from = this.formFilters.from;
+  const to = this.formFilters.to;
 
   if (!from || !to) return false;
 
-  // Convertit en Date pour comparer
   const fromDate = new Date(from);
   const toDate = new Date(to);
 
-  return fromDate > toDate; // true si from est après to
+  return fromDate > toDate; 
 }
 
 }

@@ -35,7 +35,7 @@ export class LoginPageComponent {
         if (res.user.role === 'admin') {
           this.router.navigate(['/admin/overview']);
         } else {
-          this.router.navigate(['/dashboard']);
+          this.router.navigate(['/upload']);
         }
 
         this.cdr.detectChanges();

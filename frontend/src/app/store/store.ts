@@ -49,7 +49,6 @@ setFilters(partial: Partial<LogFilters>) {
       destinationIp: '',
       sourcePort: '',
       destinationPort: '',
-      firewallType: '',
       direction: '',
       from: '',
       to: ''
