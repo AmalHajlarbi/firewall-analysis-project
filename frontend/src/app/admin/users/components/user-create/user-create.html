@@ -1,0 +1,75 @@
+<h2>Create User</h2>
+
+<p class="err" *ngIf="error">{{ error }}</p>
+
+<form class="card" [formGroup]="form" (ngSubmit)="submit()">
+
+  <label>Email</label>
+  <input type="email" formControlName="email" />
+
+  <small
+    *ngIf="form.get('email')?.touched && form.get('email')?.errors"
+  >
+    <span *ngIf="form.get('email')?.errors?.['required']">
+      Email is required
+    </span>
+    <span *ngIf="form.get('email')?.errors?.['email']">
+      Enter a valid email address
+    </span>
+    <span *ngIf="form.get('email')?.errors?.['maxlength']">
+      Email must be at most 255 characters
+    </span>
+  </small>
+
+  <label>Username</label>
+  <input type="text" formControlName="username" />
+
+  <small
+    *ngIf="form.get('username')?.touched && form.get('username')?.errors"
+  >
+    <span *ngIf="form.get('username')?.errors?.['required']">
+      Username is required
+    </span>
+    <span *ngIf="form.get('username')?.errors?.['minlength']">
+      Username must be at least 3 characters
+    </span>
+    <span *ngIf="form.get('username')?.errors?.['maxlength']">
+      Username must be at most 50 characters
+    </span>
+    <span *ngIf="form.get('username')?.errors?.['pattern']">
+      Only letters, numbers, and underscores are allowed
+    </span>
+  </small>
+
+  <label>Password</label>
+  <input type="password" formControlName="password" />
+
+  <small
+    *ngIf="form.get('password')?.touched && form.get('password')?.errors"
+  >
+    <span *ngIf="form.get('password')?.errors?.['required']">
+      Password is required
+    </span>
+    <span *ngIf="form.get('password')?.errors?.['minlength']">
+      Password must be at least 8 characters
+    </span>
+    <span *ngIf="form.get('password')?.errors?.['maxlength']">
+      Password must be at most 100 characters
+    </span>
+    <span *ngIf="form.get('password')?.errors?.['pattern']">
+      Password must include uppercase, lowercase, number, and special character
+    </span>
+  </small>
+
+  <label>Role</label>
+  <select formControlName="role">
+    <option *ngFor="let r of roles" [value]="r">
+      {{ r }}
+    </option>
+  </select>
+
+  <button type="submit" [disabled]="loading || form.invalid">
+    {{ loading ? 'Creating...' : 'Create User' }}
+  </button>
+
+</form>

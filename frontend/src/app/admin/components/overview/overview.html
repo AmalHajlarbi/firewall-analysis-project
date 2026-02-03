@@ -1,0 +1,50 @@
+<h2>Overview</h2>
+
+<p class="err" *ngIf="error">{{ error }}</p>
+
+<div class="cards" *ngIf="!loading; else loadingTpl">
+
+  <!-- Total -->
+  <div class="card">
+    <div class="label">Total users</div>
+    <div class="value">{{ totalUsers }}</div>
+  </div>
+
+  <!-- Roles -->
+  <div class="card">
+    <div class="label">Admins</div>
+    <div class="value">{{ admins }}</div>
+  </div>
+
+  <div class="card">
+    <div class="label">Analysts</div>
+    <div class="value">{{ analysts }}</div>
+  </div>
+
+  <!-- Active -->
+  <div class="card">
+    <div class="label">Active users</div>
+    <div class="value good">{{ activeUsers }}</div>
+  </div>
+
+  <div class="card">
+    <div class="label">Inactive users</div>
+    <div class="value bad">{{ inactiveUsers }}</div>
+  </div>
+
+  <!-- Blocked -->
+  <div class="card">
+    <div class="label">Blocked users</div>
+    <div class="value bad">{{ blockedUsers }}</div>
+  </div>
+
+  <div class="card">
+    <div class="label">Unblocked users</div>
+    <div class="value good">{{ unblockedUsers }}</div>
+  </div>
+
+</div>
+
+<ng-template #loadingTpl>
+  <div>Loading...</div>
+</ng-template>

@@ -1,0 +1,6 @@
+.card { max-width: 520px; border: 1px solid #e6e6e6; border-radius: 14px; padding: 14px; background: white; }
+label { display: block; margin-top: 10px; font-weight: 600; font-size: 13px; }
+input, select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 10px; margin-top: 6px; }
+button { margin-top: 14px; padding: 10px; border: 0; border-radius: 10px; cursor: pointer; width: 100%; }
+.err { color: #c62828; }
+.ok { color: #2e7d32; }

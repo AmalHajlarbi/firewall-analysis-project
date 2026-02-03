@@ -1,9 +1,8 @@
 import { Component, ChangeDetectorRef } from '@angular/core';
-import { RouterLink } from '@angular/router';
-import { Router } from '@angular/router';
+import { RouterLink, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { AuthService } from '../../services/auth';
+import { AuthService, AuthResponse } from '../../services/auth';
 
 @Component({
   selector: 'app-login-page',
@@ -28,20 +27,27 @@ export class LoginPageComponent {
     this.error = '';
     this.loading = true;
 
-    this.auth.login(this.email.trim(), this.password).subscribe({
-      next: () => {
+    this.auth.login({ email: this.email.trim(), password: this.password }).subscribe({
+      next: (res: AuthResponse) => {
+        console.log('LOGIN OK. ROLE =', res.user.role);
         this.loading = false;
-        this.router.navigate(['/upload']);
+
+        if (res.user.role === 'admin') {
+          this.router.navigate(['/admin/overview']);
+        } else {
+          this.router.navigate(['/dashboard']);
+        }
+
         this.cdr.detectChanges();
       },
       error: (err) => {
+        console.log('LOGIN FAILED', err.status, err?.error);
         this.loading = false;
-        console.error('LOGIN ERROR:', err);
 
         const msg = err?.error?.message;
         this.error = Array.isArray(msg) ? msg.join(', ') : (msg || 'Wrong credentials');
 
-        this.cdr.detectChanges(); 
+        this.cdr.detectChanges();
       }
     });
   }

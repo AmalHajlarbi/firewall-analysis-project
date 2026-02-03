@@ -40,7 +40,7 @@ export class UsersService {
     limit = 20,
   ): Promise<{ users: User[]; total: number; page: number; lastPage: number }> {
     const total = await this.usersRepository.count({
-      where: { deletedAt: IsNull() },
+      withDeleted: true,
     });
 
     const lastPage = Math.ceil(total / limit);
@@ -48,7 +48,7 @@ export class UsersService {
     const safePage = page > lastPage ? lastPage : page;
 
     const users = await this.usersRepository.find({
-      where: { deletedAt: IsNull() },
+      withDeleted: true,
       skip: (safePage - 1) * limit,
       take: limit,
       order: { createdAt: 'DESC' },

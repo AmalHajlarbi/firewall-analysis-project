@@ -1,0 +1,24 @@
+<div class="shell">
+  <admin-header></admin-header>
+
+  <div class="body">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="title">Admin Panel</div>
+        <div class="sub" *ngIf="user">
+          {{ user.username }}
+        </div>
+      </div>
+
+      <nav class="nav">
+        <a routerLink="/admin/overview" routerLinkActive="active">Overview</a>
+        <a routerLink="/admin/users" routerLinkActive="active">Users</a>
+        <a routerLink="/admin/users/create" routerLinkActive="active">Create User</a>
+      </nav>
+    </aside>
+
+    <main class="content">
+      <router-outlet></router-outlet>
+    </main>
+  </div>
+</div>

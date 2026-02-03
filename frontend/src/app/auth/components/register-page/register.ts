@@ -47,11 +47,22 @@ export class RegisterPageComponent {
       return;
     }
 
-    if (this.password.length < 6) {
-      this.error = 'Password must be at least 6 characters.';
-      this.cdr.detectChanges();
-      return;
-    }
+    if (this.password.length < 8) {
+  this.error = 'Password must be at least 8 characters.';
+  this.cdr.detectChanges();
+  return;
+}
+
+const strongPass =
+  /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/;
+
+if (!strongPass.test(this.password)) {
+  this.error =
+    'Password must contain uppercase, lowercase, number, and special character.';
+  this.cdr.detectChanges();
+  return;
+}
+
 
     if (this.password !== this.confirmPassword) {
       this.error = 'Passwords do not match.';
